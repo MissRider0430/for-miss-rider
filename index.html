@@ -3,21 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Midnight Garden - Alive</title>
+  <title>For Miss Rider</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Cinzel:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400;1,500&family=Cinzel:wght@400;500&display=swap" rel="stylesheet">
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 
   <style>
     :root {
-      --petal: #c41e3a;
-      --gold: #c9a84c;
-      --moon: #d4c0a8;
-      --bg: #020000;
-      --mist: rgba(255, 109, 134, 0.12);
+      --bg: #040203;
+      --moon: #f4ddd0;
+      --rose: #f5b7c4;
+      --soft: rgba(255, 235, 225, 0.82);
     }
+
+    * { box-sizing: border-box; }
 
     html, body {
       margin: 0;
@@ -26,117 +27,160 @@
       overflow: hidden;
       background: var(--bg);
       font-family: 'Cormorant Garamond', serif;
-      touch-action: none;
-      -webkit-touch-callout: none;
-      user-select: none;
-      -webkit-user-select: none;
-      overscroll-behavior: none;
+      color: var(--soft);
+      touch-action: manipulation;
+    }
+
+    #webgl-container,
+    #vignette,
+    #grain,
+    #fade-to-black,
+    #story-stage,
+    #lockscreen {
+      position: fixed;
+      inset: 0;
     }
 
     #webgl-container {
-      position: absolute;
-      inset: 0;
       z-index: 1;
       opacity: 0;
-      filter: blur(22px) brightness(0.28);
-      transition: filter 2.2s ease-in-out, opacity 1.9s ease;
-      pointer-events: none;
+      filter: blur(18px) brightness(0.25);
+      transition: opacity 2.2s ease, filter 3.2s ease;
     }
 
     #webgl-container.unlocked {
       opacity: 1;
-      filter: blur(0px) brightness(1);
-      pointer-events: auto;
+      filter: blur(0) brightness(1);
+    }
+
+    #vignette {
+      z-index: 4;
+      pointer-events: none;
+      background: radial-gradient(circle at center, rgba(0,0,0,0) 0%, rgba(0,0,0,0.2) 48%, rgba(0,0,0,0.76) 100%);
+    }
+
+    #grain {
+      z-index: 5;
+      pointer-events: none;
+      opacity: 0.05;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 3px 3px;
+      mix-blend-mode: soft-light;
     }
 
     #lockscreen {
-      position: absolute;
-      inset: 0;
-      z-index: 5000;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      z-index: 10;
+      display: grid;
+      place-items: center;
+      padding: 24px;
       text-align: center;
+      background: radial-gradient(circle at center, rgba(36,8,16,0.18), rgba(0,0,0,0.78));
       cursor: pointer;
-      background:
-        radial-gradient(circle at center, rgba(40,0,0,0.14), rgba(0,0,0,0.7)),
-        linear-gradient(to bottom, rgba(0,0,0,0.06), rgba(0,0,0,0.35));
     }
 
-    .lock-label {
-      font-family: "Cinzel", serif;
-      font-size: clamp(10px, 2.5vw, 13px);
-      letter-spacing: 0.6em;
-      color: var(--gold);
-      text-transform: uppercase;
-      margin: 0 0 12px 0;
-      opacity: 0.82;
-    }
-
-    .lock-until {
-      font-style: italic;
-      font-size: clamp(18px, 4vw, 24px);
-      color: var(--moon);
-      margin: 0 0 40px 0;
-      opacity: 0.66;
-      letter-spacing: 0.05em;
-    }
-
-    .lock-clock {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 50px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .lock-unit {
+    .lock-inner {
+      max-width: 560px;
       display: flex;
       flex-direction: column;
+      gap: 14px;
       align-items: center;
-      gap: 8px;
     }
 
-    .lock-digits {
-      font-family: "Cinzel", serif;
-      font-size: clamp(40px, 10vw, 75px);
-      line-height: 1;
-      color: var(--petal);
-      text-shadow: 0 0 30px rgba(196,30,58,0.6);
-      min-width: 2.2ch;
+    .lock-main,
+    .lock-sub {
+      margin: 0;
+      opacity: 0;
+      transform: translateY(8px);
+      animation: lockReveal 1.4s ease forwards;
     }
 
-    .lock-unit-label {
-      font-family: "Cinzel", serif;
-      font-size: 9px;
-      letter-spacing: 0.5em;
-      color: rgba(201,168,76,0.5);
-      text-transform: uppercase;
+    .lock-main {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(28px, 6.4vw, 52px);
+      letter-spacing: 0.08em;
+      color: var(--moon);
     }
 
-    .lock-colon {
-      font-family: "Cinzel", serif;
-      font-size: clamp(30px, 8vw, 60px);
-      color: rgba(196,30,58,0.5);
-      line-height: 1;
-      margin-bottom: 18px;
-      animation: blink 1s step-end infinite;
-    }
-
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.2; }
+    .lock-sub {
+      animation-delay: 0.35s;
+      font-style: italic;
+      font-size: clamp(20px, 4.4vw, 30px);
+      color: rgba(255, 227, 214, 0.74);
     }
 
     .lock-hint {
-      font-family: "Cinzel", serif;
-      font-size: 10px;
-      letter-spacing: 0.4em;
-      color: rgba(201,168,76,0.42);
+      margin-top: 10px;
+      font-family: 'Cinzel', serif;
       text-transform: uppercase;
-      animation: hintPulse 3s ease-in-out infinite;
+      letter-spacing: 0.32em;
+      font-size: 10px;
+      color: rgba(255, 206, 192, 0.4);
+      animation: hintPulse 2.6s ease-in-out infinite;
+    }
+
+    #story-stage {
+      z-index: 8;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      padding: 20px;
+    }
+
+    .story-block {
+      width: min(860px, 92vw);
+      text-align: center;
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 1.8s ease, transform 1.8s ease;
+    }
+
+    .story-block.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .story-line {
+      margin: 0;
+      font-size: clamp(27px, 4.5vw, 44px);
+      line-height: 1.35;
+      letter-spacing: 0.02em;
+      color: var(--soft);
+      text-shadow: 0 0 18px rgba(255, 182, 196, 0.12);
+    }
+
+    .poem-line {
+      margin: 0;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 1.5s ease, transform 1.5s ease, text-shadow 1.5s ease;
+      font-size: clamp(26px, 4.8vw, 46px);
+      line-height: 1.35;
+    }
+
+    .poem-line.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .poem-line.glow {
+      text-shadow: 0 0 28px rgba(255, 192, 210, 0.42), 0 0 56px rgba(255, 168, 194, 0.24);
+    }
+
+    #fade-to-black {
+      z-index: 12;
+      background: #000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 4.5s ease;
+    }
+
+    @keyframes lockReveal {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     @keyframes hintPulse {
@@ -144,572 +188,67 @@
       50% { opacity: 0.85; }
     }
 
-    #hold-ring-container {
-      position: fixed;
-      inset: 0;
-      z-index: 5100;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.25s ease;
-    }
-
-    .progress-track {
-      fill: none;
-      stroke: rgba(196,30,58,0.2);
-      stroke-width: 2;
-    }
-
-    .progress-circle {
-      fill: none;
-      stroke: var(--petal);
-      stroke-width: 3;
-      stroke-linecap: round;
-      stroke-dasharray: 283;
-      stroke-dashoffset: 283;
-      filter: drop-shadow(0 0 10px rgba(196,30,58,0.8));
-      transform-origin: center;
-      transform: rotate(-90deg);
-    }
-
-    #fx-hint {
-      position: absolute;
-      left: 50%;
-      bottom: 22px;
-      transform: translateX(-50%);
-      z-index: 20;
-      color: rgba(212, 192, 168, 0.35);
-      font-family: "Cinzel", serif;
-      font-size: 9px;
-      letter-spacing: 0.35em;
-      text-transform: uppercase;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 1s ease;
-    }
-
-    #webgl-container.unlocked ~ #fx-hint {
-      opacity: 1;
-    }
-
-    #whisper {
-      position: fixed;
-      left: 50%;
-      top: 18%;
-      transform: translateX(-50%) translateY(10px);
-      z-index: 24;
-      pointer-events: none;
-      opacity: 0;
-      color: rgba(255, 233, 225, 0.78);
-      font-family: "Cormorant Garamond", serif;
-      font-style: italic;
-      font-size: clamp(18px, 3.5vw, 30px);
-      letter-spacing: 0.04em;
-      text-shadow: 0 0 18px rgba(255, 120, 150, 0.35);
-      transition: opacity 1.2s ease, transform 1.2s ease;
-      max-width: min(78vw, 520px);
-      text-align: center;
-    }
-
-    #whisper.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-
-    #whisper.glow-pop {
-      animation: whisperGlow 1.9s ease-out;
-    }
-
-    @keyframes whisperGlow {
-      0% {
-        text-shadow:
-          0 0 0 rgba(255, 140, 165, 0.15),
-          0 0 0 rgba(255, 160, 190, 0.1);
+    @media (max-width: 680px) {
+      .story-line,
+      .poem-line {
+        font-size: clamp(22px, 7vw, 34px);
       }
-      40% {
-        text-shadow:
-          0 0 26px rgba(255, 150, 180, 0.78),
-          0 0 54px rgba(255, 180, 210, 0.52);
-      }
-      100% {
-        text-shadow:
-          0 0 18px rgba(255, 120, 150, 0.35),
-          0 0 30px rgba(255, 160, 185, 0.14);
-      }
-    }
-
-    #scene-ripple-layer {
-      position: fixed;
-      inset: 0;
-      z-index: 25;
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    .scene-ripple {
-      position: absolute;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      transform: translate(-50%, -50%) scale(0.15);
-      opacity: 0.9;
-      border: 1px solid rgba(255, 210, 225, 0.55);
-      box-shadow:
-        0 0 18px rgba(255, 120, 150, 0.35),
-        inset 0 0 12px rgba(255, 220, 230, 0.18);
-      mix-blend-mode: screen;
-      will-change: transform, opacity;
-    }
-
-    #vignette {
-      position: fixed;
-      inset: 0;
-      z-index: 16;
-      pointer-events: none;
-      background:
-        radial-gradient(circle at center, rgba(0,0,0,0) 0%, rgba(0,0,0,0.10) 46%, rgba(0,0,0,0.58) 100%);
-      mix-blend-mode: multiply;
-    }
-
-    #grain {
-      position: fixed;
-      inset: 0;
-      z-index: 17;
-      pointer-events: none;
-      opacity: 0.07;
-      background-image:
-        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-      background-size: 3px 3px, 3px 3px;
-      mix-blend-mode: soft-light;
     }
   </style>
 </head>
 <body>
-
   <div id="webgl-container"></div>
 
-  <div id="lockscreen">
-    <p class="lock-label">A gift is waiting</p>
-    <p class="lock-until">Unlocks on 30th April 2026</p>
-    <div class="lock-clock">
-      <div class="lock-unit"><span class="lock-digits" id="lk-d">00</span><span class="lock-unit-label">Days</span></div>
-      <div class="lock-colon">:</div>
-      <div class="lock-unit"><span class="lock-digits" id="lk-h">00</span><span class="lock-unit-label">Hours</span></div>
-      <div class="lock-colon">:</div>
-      <div class="lock-unit"><span class="lock-digits" id="lk-m">00</span><span class="lock-unit-label">Mins</span></div>
+  <div id="lockscreen" aria-label="Lockscreen">
+    <div class="lock-inner">
+      <p class="lock-main">Not yet…</p>
+      <p class="lock-sub">Just a little longer, Miss Rider.</p>
+      <p class="lock-hint">hold to begin</p>
     </div>
-    <p class="lock-hint">hold to enter early</p>
   </div>
 
-  <div id="hold-ring-container">
-    <svg width="120" height="120" viewBox="0 0 100 100">
-      <circle class="progress-track" cx="50" cy="50" r="45"></circle>
-      <circle class="progress-circle" cx="50" cy="50" r="45"></circle>
-    </svg>
-  </div>
-
-  <div id="scene-ripple-layer"></div>
-  <div id="whisper">I was waiting for you.</div>
-  <div id="fx-hint">move to stir the petals</div>
+  <div id="story-stage" aria-live="polite"></div>
   <div id="vignette"></div>
   <div id="grain"></div>
+  <div id="fade-to-black"></div>
 
   <script>
     (function () {
       const container = document.getElementById('webgl-container');
       const lockscreen = document.getElementById('lockscreen');
-      const holdRingContainer = document.getElementById('hold-ring-container');
-      const progressCircle = document.querySelector('.progress-circle');
-      const rippleLayer = document.getElementById('scene-ripple-layer');
-      const whisper = document.getElementById('whisper');
-
-      const lkD = document.getElementById('lk-d');
-      const lkH = document.getElementById('lk-h');
-      const lkM = document.getElementById('lk-m');
-
-      let isHolding = false;
-      let isUnlocked = false;
-      let unlockTween = null;
-      let audioCtx = null;
-      let masterGain = null;
-      let chimeTimer = null;
-
-      let gyroTargetX = 0;
-      let gyroTargetY = 0;
-      let gyroAttached = false;
-
-      let pointerCamTargetX = 0;
-      let pointerCamTargetY = 0;
-      let swipeWindX = 0;
-      let swipeWindY = 0;
-
-      let activePointer = false;
-      let attractMode = false;
-      let holdStartTime = 0;
-      let holdDelayTimer = null;
-
-      let currentPointerX = 0;
-      let currentPointerY = 0;
-      let currentWorldPoint = new THREE.Vector3(0, 0, 0);
-
-      let idleWhisperTimer = null;
-      let whisperLineIndex = 0;
-      let whisperRevealTimer = null;
-      let cameraForwardProgress = 0;
-      let lastFrameTime = performance.now();
-      let isPageVisible = true;
-
-      const whisperLines = [
-        "I was waiting for you.",
-        "Every star leaned closer for this moment.",
-        "Stay here, and let the night bloom with us."
-      ];
-
-      window.oncontextmenu = function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-        return false;
-      };
-
-      function resetWhisperTimer() {
-        if (!isUnlocked) return;
-        whisper.classList.remove('show');
-        whisper.classList.remove('glow-pop');
-        if (idleWhisperTimer) clearTimeout(idleWhisperTimer);
-        if (whisperRevealTimer) clearTimeout(whisperRevealTimer);
-
-        idleWhisperTimer = setTimeout(() => {
-          if (!isUnlocked) return;
-          whisper.textContent = whisperLines[whisperLineIndex % whisperLines.length];
-          whisperLineIndex += 1;
-          whisperRevealTimer = setTimeout(() => {
-            if (!isUnlocked) return;
-            whisper.classList.add('show');
-            whisper.classList.remove('glow-pop');
-            void whisper.offsetWidth;
-            whisper.classList.add('glow-pop');
-          }, 650);
-        }, 8400);
-      }
-
-      function hideWhisperAndReset() {
-        whisper.classList.remove('show');
-        whisper.classList.remove('glow-pop');
-        resetWhisperTimer();
-      }
-
-      function handleOrientation(event) {
-        if (event.gamma == null || event.beta == null) return;
-        gyroTargetX = Math.max(-30, Math.min(30, event.gamma * 0.5));
-        gyroTargetY = Math.max(-30, Math.min(30, (event.beta - 45) * 0.5));
-      }
-
-      function requestGyroPermission() {
-        if (gyroAttached) return;
-        const D = window.DeviceOrientationEvent;
-        if (D && typeof D.requestPermission === 'function') {
-          D.requestPermission()
-            .then(state => {
-              if (state === 'granted' && !gyroAttached) {
-                window.addEventListener('deviceorientation', handleOrientation, true);
-                gyroAttached = true;
-              }
-            })
-            .catch(() => {});
-        } else {
-          window.addEventListener('deviceorientation', handleOrientation, true);
-          gyroAttached = true;
-        }
-      }
-
-      window.addEventListener('click', requestGyroPermission, { once: true });
-      window.addEventListener('touchstart', requestGyroPermission, { once: true, passive: true });
-
-      const targetDate = new Date("2026-04-30T00:00:00").getTime();
-
-      function updateClock() {
-        const now = Date.now();
-        const distance = targetDate - now;
-
-        if (distance <= 0) {
-          lkD.innerText = "00";
-          lkH.innerText = "00";
-          lkM.innerText = "00";
-          return;
-        }
-
-        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-
-        lkD.innerText = String(days).padStart(2, "0");
-        lkH.innerText = String(hours).padStart(2, "0");
-        lkM.innerText = String(minutes).padStart(2, "0");
-      }
-
-      updateClock();
-      setInterval(updateClock, 1000);
-
-      function startSoundscape() {
-        if (audioCtx) return;
-        const AC = window.AudioContext || window.webkitAudioContext;
-        if (!AC) return;
-
-        audioCtx = new AC();
-        masterGain = audioCtx.createGain();
-        masterGain.gain.value = 0.03;
-        masterGain.connect(audioCtx.destination);
-
-        const bassFilter = audioCtx.createBiquadFilter();
-        bassFilter.type = 'lowpass';
-        bassFilter.frequency.value = 180;
-        bassFilter.Q.value = 0.7;
-
-        const bassGain = audioCtx.createGain();
-        bassGain.gain.value = 0.9;
-
-        const drone1 = audioCtx.createOscillator();
-        drone1.type = 'sine';
-        drone1.frequency.value = 55;
-
-        const drone2 = audioCtx.createOscillator();
-        drone2.type = 'triangle';
-        drone2.frequency.value = 110;
-
-        const shimmerFilter = audioCtx.createBiquadFilter();
-        shimmerFilter.type = 'highpass';
-        shimmerFilter.frequency.value = 85;
-
-        const shimmerGain = audioCtx.createGain();
-        shimmerGain.gain.value = 0.08;
-
-        const shimmer = audioCtx.createOscillator();
-        shimmer.type = 'sine';
-        shimmer.frequency.value = 220;
-
-        drone1.connect(bassFilter);
-        bassFilter.connect(bassGain);
-        bassGain.connect(masterGain);
-
-        drone2.connect(shimmerFilter);
-        shimmerFilter.connect(shimmerGain);
-        shimmerGain.connect(masterGain);
-
-        shimmer.connect(masterGain);
-
-        drone1.start();
-        drone2.start();
-        shimmer.start();
-
-        function playChime() {
-          if (!audioCtx) return;
-          const now = audioCtx.currentTime;
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          const filter = audioCtx.createBiquadFilter();
-
-          const notes = [659.25, 783.99, 987.77, 1046.5, 1318.5];
-          const freq = notes[Math.floor(Math.random() * notes.length)];
-
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, now);
-          osc.frequency.exponentialRampToValueAtTime(freq * 0.5, now + 1.2);
-
-          filter.type = 'highpass';
-          filter.frequency.value = 240;
-
-          gain.gain.setValueAtTime(0.0001, now);
-          gain.gain.exponentialRampToValueAtTime(0.05, now + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.4);
-
-          osc.connect(filter);
-          filter.connect(gain);
-          gain.connect(masterGain);
-
-          osc.start(now);
-          osc.stop(now + 1.45);
-        }
-
-        function scheduleChime() {
-          if (!audioCtx) return;
-          chimeTimer = setTimeout(() => {
-            if (!audioCtx) return;
-            playChime();
-            scheduleChime();
-          }, 7000 + Math.random() * 7000);
-        }
-
-        scheduleChime();
-      }
-
-      function worldPointFromEvent(e) {
-        const point = e.touches && e.touches.length ? e.touches[0] : e;
-        if (!point) return null;
-
-        currentPointerX = point.clientX;
-        currentPointerY = point.clientY;
-
-        const ndcX = (point.clientX / window.innerWidth) * 2 - 1;
-        const ndcY = -(point.clientY / window.innerHeight) * 2 + 1;
-
-        const raycaster = new THREE.Raycaster();
-        raycaster.setFromCamera({ x: ndcX, y: ndcY }, camera);
-
-        const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
-        const hit = new THREE.Vector3();
-        raycaster.ray.intersectPlane(plane, hit);
-        return hit;
-      }
-
-      function spawnRippleVisual(x, y, strong) {
-        const ring = document.createElement('div');
-        ring.className = 'scene-ripple';
-        ring.style.left = `${x}px`;
-        ring.style.top = `${y}px`;
-        ring.style.borderColor = strong ? 'rgba(255, 227, 200, 0.65)' : 'rgba(255, 210, 225, 0.55)';
-        ring.style.boxShadow = strong
-          ? '0 0 24px rgba(255, 195, 150, 0.42), inset 0 0 12px rgba(255, 240, 220, 0.14)'
-          : '0 0 18px rgba(255, 120, 150, 0.35), inset 0 0 12px rgba(255, 220, 230, 0.18)';
-
-        rippleLayer.appendChild(ring);
-
-        gsap.to(ring, {
-          scale: strong ? 12 : 9,
-          opacity: 0,
-          duration: strong ? 1.6 : 1.3,
-          ease: 'power2.out',
-          onComplete: () => ring.remove()
-        });
-      }
-
-      const sceneRipples = [];
-      function addRipple(worldPoint, screenX, screenY, strength) {
-        if (!worldPoint) return;
-        sceneRipples.push({
-          x: worldPoint.x,
-          y: worldPoint.y,
-          radius: 0,
-          strength: strength,
-          maxRadius: 220 + strength * 40
-        });
-        spawnRippleVisual(screenX, screenY, strength > 1.2);
-      }
-
-      function unlockGarden() {
-        if (isUnlocked) return;
-        isUnlocked = true;
-
-        gsap.to([lockscreen, holdRingContainer], {
-          opacity: 0,
-          duration: 1.1,
-          ease: "power2.inOut",
-          onComplete: () => {
-            lockscreen.style.display = "none";
-            holdRingContainer.style.display = "none";
-          }
-        });
-
-        container.classList.add("unlocked");
-        hideWhisperAndReset();
-
-        startSoundscape();
-        if (audioCtx && audioCtx.state === 'suspended') {
-          audioCtx.resume().catch(() => {});
-        }
-
-        resetWhisperTimer();
-      }
-
-      function startHold(e) {
-        if (isUnlocked) return;
-        if (e && e.cancelable) e.preventDefault();
-        if (isHolding) return;
-
-        isHolding = true;
-        holdRingContainer.style.opacity = 1;
-
-        gsap.killTweensOf(progressCircle);
-        if (unlockTween) unlockTween.kill();
-
-        unlockTween = gsap.to(progressCircle, {
-          strokeDashoffset: 0,
-          duration: 1.5,
-          ease: "none",
-          onComplete: unlockGarden
-        });
-      }
-
-      function stopHold() {
-        if (isUnlocked || !isHolding) return;
-        isHolding = false;
-
-        if (unlockTween) unlockTween.kill();
-        gsap.killTweensOf(progressCircle);
-
-        gsap.to(progressCircle, {
-          strokeDashoffset: 283,
-          duration: 0.3,
-          ease: "power2.out"
-        });
-
-        holdRingContainer.style.opacity = 0;
-      }
-
-      lockscreen.addEventListener('pointerdown', startHold);
-      window.addEventListener('pointerup', stopHold);
-      window.addEventListener('pointercancel', stopHold);
-
-      lockscreen.addEventListener('touchstart', startHold, { passive: false });
-      lockscreen.addEventListener('touchend', stopHold);
-      lockscreen.addEventListener('touchcancel', stopHold);
-      lockscreen.addEventListener('mousedown', startHold);
-      lockscreen.addEventListener('mouseup', stopHold);
-      lockscreen.addEventListener('mouseleave', stopHold);
+      const storyStage = document.getElementById('story-stage');
+      const fadeToBlack = document.getElementById('fade-to-black');
 
       const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x020000);
-      scene.fog = new THREE.FogExp2(0x020000, 0.0028);
+      scene.background = new THREE.Color(0x040203);
+      scene.fog = new THREE.FogExp2(0x040203, 0.0024);
 
-      const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.set(0, 0, 150);
-
-      const bloomGroup = new THREE.Group();
-      scene.add(bloomGroup);
+      const camera = new THREE.PerspectiveCamera(64, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(0, 0, 170);
 
       const isMobile = window.matchMedia('(max-width: 900px), (pointer: coarse)').matches;
       const isLowEnd = isMobile || (navigator.hardwareConcurrency || 4) <= 4;
 
-      const renderer = new THREE.WebGLRenderer({
-        antialias: !isLowEnd,
-        alpha: false,
-        powerPreference: "high-performance"
-      });
+      const renderer = new THREE.WebGLRenderer({ antialias: !isLowEnd, powerPreference: 'high-performance' });
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(isLowEnd ? 1 : Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
       renderer.outputEncoding = THREE.sRGBEncoding;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.15;
+      renderer.toneMappingExposure = 1.05;
       container.appendChild(renderer.domElement);
 
-      const ambientLight = new THREE.AmbientLight(0xffffff, 1.35);
-      scene.add(ambientLight);
+      const ambient = new THREE.AmbientLight(0xffffff, 1.0);
+      scene.add(ambient);
 
-      const moonLight = new THREE.DirectionalLight(0xd4c0a8, 1.1);
-      moonLight.position.set(50, 100, 50);
-      scene.add(moonLight);
+      const moon = new THREE.DirectionalLight(0xffe5d8, 1.12);
+      moon.position.set(50, 100, 30);
+      scene.add(moon);
 
-      const crimsonGlow = new THREE.PointLight(0xff0033, 3.3, 350);
-      crimsonGlow.position.set(0, -50, 50);
-      scene.add(crimsonGlow);
+      const roseFill = new THREE.PointLight(0xff7da1, 1.8, 280);
+      roseFill.position.set(-45, -10, 80);
+      scene.add(roseFill);
 
-      const halo = new THREE.PointLight(0xffb36b, 0.95, 300);
-      halo.position.set(-120, 80, 60);
-      scene.add(halo);
-
-      function makeRadialTexture(inner, outer) {
+      function radial(inner, outer) {
         const canvas = document.createElement('canvas');
         canvas.width = 256;
         canvas.height = 256;
@@ -719,408 +258,246 @@
         g.addColorStop(1, outer);
         ctx.fillStyle = g;
         ctx.fillRect(0, 0, 256, 256);
-        const tex = new THREE.CanvasTexture(canvas);
-        tex.encoding = THREE.sRGBEncoding;
-        return tex;
+        return new THREE.CanvasTexture(canvas);
       }
 
-      const starTexture = makeRadialTexture('rgba(255,250,235,1)', 'rgba(255,250,235,0)');
-      const mistTexture = makeRadialTexture('rgba(255,140,160,0.7)', 'rgba(255,140,160,0)');
-      const moonTexture = makeRadialTexture('rgba(255,220,190,0.45)', 'rgba(255,220,190,0)');
-
-      const moonGeometry = new THREE.BufferGeometry();
-      moonGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 0, 0]), 3));
-      const moonSprite = new THREE.Points(moonGeometry, new THREE.PointsMaterial({
-        map: moonTexture,
-        size: 180,
-        transparent: true,
-        opacity: 0.25,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false
-      }));
-      moonSprite.position.set(-120, 100, -250);
-      scene.add(moonSprite);
+      const starTex = radial('rgba(255,244,235,1)', 'rgba(255,244,235,0)');
+      const mistTex = radial('rgba(255,155,175,0.65)', 'rgba(255,155,175,0)');
 
       const starGeometry = new THREE.BufferGeometry();
-      const starCount = isLowEnd ? (isMobile ? 260 : 350) : 900;
+      const starCount = isLowEnd ? 300 : 700;
       const starPositions = new Float32Array(starCount * 3);
-
       for (let i = 0; i < starPositions.length; i++) {
         starPositions[i] = (Math.random() - 0.5) * 700;
       }
-
       starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-      const starMaterial = new THREE.PointsMaterial({
-        size: 1.8,
-        map: starTexture,
+      const starField = new THREE.Points(starGeometry, new THREE.PointsMaterial({
+        map: starTex,
+        size: 1.7,
         transparent: true,
         opacity: 0.95,
         blending: THREE.AdditiveBlending,
         depthWrite: false
-      });
-      const starField = new THREE.Points(starGeometry, starMaterial);
+      }));
       scene.add(starField);
 
-      const glowGeometry = new THREE.BufferGeometry();
-      const glowCount = isLowEnd ? (isMobile ? 14 : 20) : 40;
-      const glowPositions = new Float32Array(glowCount * 3);
-      for (let i = 0; i < glowPositions.length; i++) {
-        glowPositions[i] = (Math.random() - 0.5) * 500;
-      }
-      glowGeometry.setAttribute('position', new THREE.BufferAttribute(glowPositions, 3));
-      const glowMaterial = new THREE.PointsMaterial({
-        size: 8,
-        map: mistTexture,
-        color: 0xff4b6b,
-        transparent: true,
-        opacity: 0.16,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false
-      });
-      const glowField = new THREE.Points(glowGeometry, glowMaterial);
-      scene.add(glowField);
-
       const mistGeometry = new THREE.BufferGeometry();
-      const mistCount = isLowEnd ? (isMobile ? 58 : 80) : 160;
+      const mistCount = isLowEnd ? 80 : 150;
       const mistPositions = new Float32Array(mistCount * 3);
       const mistSpeedX = new Float32Array(mistCount);
       const mistSpeedY = new Float32Array(mistCount);
-
       for (let i = 0; i < mistCount; i++) {
-        mistPositions[i * 3] = (Math.random() - 0.5) * 520;
-        mistPositions[i * 3 + 1] = (Math.random() - 0.5) * 320;
-        mistPositions[i * 3 + 2] = -120 + Math.random() * 180;
-        mistSpeedX[i] = (Math.random() - 0.5) * 0.03;
-        mistSpeedY[i] = Math.random() * 0.015;
+        mistPositions[i * 3] = (Math.random() - 0.5) * 540;
+        mistPositions[i * 3 + 1] = (Math.random() - 0.5) * 360;
+        mistPositions[i * 3 + 2] = -140 + Math.random() * 160;
+        mistSpeedX[i] = (Math.random() - 0.5) * 0.05;
+        mistSpeedY[i] = Math.random() * 0.017;
       }
-
       mistGeometry.setAttribute('position', new THREE.BufferAttribute(mistPositions, 3));
-      const mistMaterial = new THREE.PointsMaterial({
-        size: isLowEnd ? 22 : 28,
-        map: mistTexture,
-        color: 0xff6d86,
+      const mistField = new THREE.Points(mistGeometry, new THREE.PointsMaterial({
+        map: mistTex,
+        size: isLowEnd ? 24 : 30,
+        color: 0xff8ca8,
         transparent: true,
-        opacity: 0.10,
+        opacity: 0.14,
         blending: THREE.AdditiveBlending,
         depthWrite: false
-      });
-      const mistField = new THREE.Points(mistGeometry, mistMaterial);
+      }));
       scene.add(mistField);
 
-      const dustGeometry = new THREE.BufferGeometry();
-      const dustCount = isLowEnd ? (isMobile ? 84 : 120) : 220;
-      const dustPositions = new Float32Array(dustCount * 3);
-
-      for (let i = 0; i < dustPositions.length; i++) {
-        dustPositions[i] = (Math.random() - 0.5) * 600;
-      }
-
-      dustGeometry.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
-      const dustMaterial = new THREE.PointsMaterial({
-        size: 1.0,
-        map: starTexture,
-        color: 0xffd9c7,
-        transparent: true,
-        opacity: 0.22,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false
-      });
-      const dustField = new THREE.Points(dustGeometry, dustMaterial);
-      scene.add(dustField);
+      const bloomGroup = new THREE.Group();
+      scene.add(bloomGroup);
 
       function createPetalTexture() {
         const canvas = document.createElement('canvas');
         canvas.width = 512;
         canvas.height = 512;
         const ctx = canvas.getContext('2d');
-
         const grad = ctx.createLinearGradient(0, 512, 0, 0);
-        grad.addColorStop(0, '#130000');
-        grad.addColorStop(0.5, '#b00014');
-        grad.addColorStop(1, '#ff2a3f');
+        grad.addColorStop(0, '#22040c');
+        grad.addColorStop(0.5, '#b61538');
+        grad.addColorStop(1, '#ff6c9a');
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, 512, 512);
-
-        for (let i = 0; i < 140; i++) {
-          const x = 256 + (Math.random() - 0.5) * 220;
-          const y = 512 - Math.random() * 260;
-          const size = Math.random() * 5 + 1.5;
-          ctx.fillStyle = 'rgba(0,0,0,0.35)';
-          ctx.beginPath();
-          ctx.arc(x, y, size, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.encoding = THREE.sRGBEncoding;
-        return texture;
+        return new THREE.CanvasTexture(canvas);
       }
 
       const petalTexture = createPetalTexture();
-
-      const petalGeometry = new THREE.PlaneGeometry(6, 20, 16, 16);
-      const pPos = petalGeometry.attributes.position;
-
-      for (let i = 0; i < pPos.count; i++) {
-        const x = pPos.getX(i);
-        const y = pPos.getY(i);
-        const normalizedY = (y + 10) / 20;
-
-        let widthPinch = Math.sin(normalizedY * Math.PI);
-        widthPinch = Math.pow(widthPinch, 0.45) * (1.25 - normalizedY * 0.4);
-
-        const cup = (x * x) * 0.15;
-        const bend = Math.sin(normalizedY * Math.PI) * -4.0;
-        const twist = Math.sin(normalizedY * Math.PI) * (x * 0.25);
-        const ruffle = Math.sin(normalizedY * 25) * (Math.abs(x) * 0.1);
-
-        pPos.setXYZ(i, x * widthPinch, y, cup + bend + twist + ruffle);
+      const petalGeometry = new THREE.PlaneGeometry(6, 20, 14, 14);
+      const p = petalGeometry.attributes.position;
+      for (let i = 0; i < p.count; i++) {
+        const x = p.getX(i);
+        const y = p.getY(i);
+        const ny = (y + 10) / 20;
+        const pinch = Math.pow(Math.sin(ny * Math.PI), 0.5);
+        p.setXYZ(i, x * pinch, y, (x * x) * 0.12 - Math.sin(ny * Math.PI) * 3.6);
       }
-
       petalGeometry.computeVertexNormals();
       petalGeometry.translate(0, 10, 0);
 
-      const stamenGeometry = new THREE.CylinderGeometry(0.12, 0.25, 14, 8, 1, false);
-      const pollenGeometry = new THREE.SphereGeometry(0.5, 10, 10);
-      pollenGeometry.scale(1, 2.5, 1);
-
-      function setupFloatingPhysics(obj) {
-        obj.position.set(
-          (Math.random() - 0.5) * 400,
-          (Math.random() - 0.5) * 400,
-          (Math.random() - 0.5) * 200
-        );
-        obj.rotation.set(
-          Math.random() * Math.PI,
-          Math.random() * Math.PI,
-          Math.random() * 0.5
-        );
-        obj.userData = {
-          speedY: Math.random() * 0.3 + 0.1,
-          speedX: (Math.random() - 0.5) * 0.15,
-          rotSpeedX: (Math.random() - 0.5) * 0.015,
-          rotSpeedY: (Math.random() - 0.5) * 0.015,
-          velocityX: 0,
-          velocityY: 0
-        };
+      function petalMaterial() {
+        return new THREE.MeshBasicMaterial({ map: petalTexture, side: THREE.DoubleSide });
       }
 
-      function makePetalMaterial() {
-        return new THREE.MeshBasicMaterial({
-          map: petalTexture,
-          color: 0xffffff,
-          side: THREE.DoubleSide,
-          transparent: false
-        });
-      }
-
-      function createLily() {
+      function buildLily() {
         const flower = new THREE.Group();
-
-        for (let i = 0; i < 3; i++) {
-          const p = new THREE.Mesh(petalGeometry, makePetalMaterial());
-          p.rotation.y = (i * Math.PI * 2 / 3);
-          p.rotation.x = 1.35;
-          flower.add(p);
-        }
-
-        for (let i = 0; i < 3; i++) {
-          const p = new THREE.Mesh(petalGeometry, makePetalMaterial());
-          p.rotation.y = (i * Math.PI * 2 / 3) + (Math.PI / 3);
-          p.rotation.x = 1.65;
-          p.position.y = -1.0;
-          flower.add(p);
-        }
-
         for (let i = 0; i < 6; i++) {
-          const stem = new THREE.Mesh(stamenGeometry, new THREE.MeshBasicMaterial({ color: 0x150000 }));
-          stem.position.y = 7;
-          stem.rotation.y = (i * Math.PI * 2 / 6);
-          stem.rotation.x = 0.3 + Math.random() * 0.15;
-
-          const pollen = new THREE.Mesh(pollenGeometry, new THREE.MeshBasicMaterial({ color: 0xffcc33 }));
-          pollen.position.y = 7;
-          pollen.rotation.z = Math.PI / 2;
-          pollen.rotation.x = Math.random();
-
-          stem.add(pollen);
-          flower.add(stem);
+          const petal = new THREE.Mesh(petalGeometry, petalMaterial());
+          petal.rotation.y = i * (Math.PI * 2 / 6);
+          petal.rotation.x = i % 2 === 0 ? 1.36 : 1.62;
+          petal.position.y = i % 2 === 0 ? 0 : -0.8;
+          flower.add(petal);
         }
-
-        flower.scale.set(0.9, 0.9, 0.9);
-        setupFloatingPhysics(flower);
+        flower.position.set((Math.random() - 0.5) * 360, (Math.random() - 0.5) * 280, (Math.random() - 0.5) * 120);
+        flower.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * 0.5);
+        flower.userData = {
+          speedY: Math.random() * 0.22 + 0.08,
+          speedX: (Math.random() - 0.5) * 0.12,
+          rotX: (Math.random() - 0.5) * 0.01,
+          rotY: (Math.random() - 0.5) * 0.01
+        };
         return flower;
       }
 
-      const floatingObjects = [];
-      const lilyCount = isLowEnd ? (isMobile ? 5 : 6) : 8;
-
+      const lilies = [];
+      const lilyCount = isLowEnd ? 5 : 8;
       for (let i = 0; i < lilyCount; i++) {
-        const lily = createLily();
+        const lily = buildLily();
         bloomGroup.add(lily);
-        floatingObjects.push(lily);
+        lilies.push(lily);
       }
 
-      const petalCount = isLowEnd ? (isMobile ? 16 : 22) : 34;
-      for (let i = 0; i < petalCount; i++) {
-        const petal = new THREE.Mesh(petalGeometry, makePetalMaterial());
-        setupFloatingPhysics(petal);
-        petal.geometry = petalGeometry.clone();
-        petal.geometry.translate(0, -10, 0);
-        bloomGroup.add(petal);
-        floatingObjects.push(petal);
-      }
-
-      const raycaster = new THREE.Raycaster();
-      const mouse = new THREE.Vector2(-100, -100);
-      let isTouchingCanvas = false;
+      let lastFrame = performance.now();
       let time = 0;
+      let unlocked = false;
+      let holdTimer = null;
+      let cinematicDepth = 0;
 
-      function onScenePointerDown(event) {
-        if (!isUnlocked) return;
+      function wait(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+      }
 
-        const hit = worldPointFromEvent(event);
-        if (!hit) return;
+      function hideCurrentBlock() {
+        const current = storyStage.querySelector('.story-block');
+        if (!current) return Promise.resolve();
+        current.classList.remove('show');
+        return wait(1800).then(() => {
+          if (current.parentNode) current.parentNode.removeChild(current);
+        });
+      }
 
-        activePointer = true;
-        attractMode = false;
-        holdStartTime = performance.now();
-        currentWorldPoint.copy(hit);
-        pointerCamTargetX = (currentPointerX / window.innerWidth) * 36 - 18;
-        pointerCamTargetY = -((currentPointerY / window.innerHeight) * 36 - 18);
+      async function showLine(text, duration, className = 'story-line', glow = false) {
+        await hideCurrentBlock();
 
-        addRipple(hit, currentPointerX, currentPointerY, 1.0);
-        hideWhisperAndReset();
+        const block = document.createElement('div');
+        block.className = 'story-block';
 
-        if (holdDelayTimer) clearTimeout(holdDelayTimer);
-        holdDelayTimer = setTimeout(() => {
-          if (activePointer && isUnlocked) {
-            attractMode = true;
-            addRipple(currentWorldPoint, currentPointerX, currentPointerY, 1.35);
+        const line = document.createElement('p');
+        line.className = className;
+        line.textContent = text;
+        block.appendChild(line);
+        storyStage.appendChild(block);
+
+        requestAnimationFrame(() => {
+          block.classList.add('show');
+          if (glow) line.classList.add('glow');
+        });
+
+        await wait(duration);
+      }
+
+      async function playStory() {
+        await wait(7000);
+
+        const poem = [
+          'You move like the night owns you,',
+          'like silence chose you first.',
+          'There’s something in your eyes—',
+          'not chaos… not calm…',
+          'something in between.',
+          'And somehow,',
+          'it feels like home.'
+        ];
+
+        for (let i = 0; i < poem.length; i++) {
+          const isGlow = i === 0 || i === 6;
+          await showLine(poem[i], 3600, 'poem-line', isGlow);
+        }
+
+        await showLine('You are steel in the storm, and silk in the quiet.', 5200);
+        await showLine('This gift is only a mirror of that: strength, grace, and the softness you hide so well.', 6400);
+
+        await showLine('Happy Birthday, Miss Rider.', 4200);
+        await showLine('You changed something in me.', 4700);
+
+        await showLine('Stay a little longer.', 5200);
+        await hideCurrentBlock();
+        fadeToBlack.style.opacity = '1';
+      }
+
+      function unlock() {
+        if (unlocked) return;
+        unlocked = true;
+        lockscreen.style.pointerEvents = 'none';
+
+        gsap.to(lockscreen, {
+          opacity: 0,
+          duration: 1.4,
+          ease: 'power2.inOut',
+          onComplete: () => {
+            lockscreen.style.display = 'none';
           }
-        }, 220);
+        });
+
+        container.classList.add('unlocked');
+        playStory();
       }
 
-      function onScenePointerMove(event) {
-        if (!isUnlocked || !activePointer) return;
-
-        const prevX = currentPointerX;
-        const prevY = currentPointerY;
-
-        const hit = worldPointFromEvent(event);
-        if (!hit) return;
-
-        currentWorldPoint.copy(hit);
-
-        const dx = currentPointerX - prevX;
-        const dy = currentPointerY - prevY;
-
-        if (!attractMode) {
-          swipeWindX += dx * 0.0009;
-          swipeWindY += dy * 0.0009;
-        }
-
-        pointerCamTargetX = (currentPointerX / window.innerWidth) * 36 - 18;
-        pointerCamTargetY = -((currentPointerY / window.innerHeight) * 36 - 18);
-        isTouchingCanvas = true;
-        hideWhisperAndReset();
+      function startHold(event) {
+        if (unlocked) return;
+        if (event.cancelable) event.preventDefault();
+        holdTimer = setTimeout(unlock, 1200);
       }
 
-      function onScenePointerUp() {
-        if (!isUnlocked || !activePointer) return;
-
-        const heldFor = performance.now() - holdStartTime;
-        if (holdDelayTimer) {
-          clearTimeout(holdDelayTimer);
-          holdDelayTimer = null;
-        }
-
-        if (attractMode) {
-          addRipple(currentWorldPoint, currentPointerX, currentPointerY, 1.45);
-          swipeWindX += 0.12;
-          swipeWindY += 0.08;
-        } else if (heldFor < 220) {
-          addRipple(currentWorldPoint, currentPointerX, currentPointerY, 0.95);
-        }
-
-        activePointer = false;
-        attractMode = false;
-        isTouchingCanvas = false;
-        pointerCamTargetX = 0;
-        pointerCamTargetY = 0;
-        hideWhisperAndReset();
+      function cancelHold() {
+        if (holdTimer) clearTimeout(holdTimer);
+        holdTimer = null;
       }
 
-      window.addEventListener('pointerdown', onScenePointerDown);
-      window.addEventListener('pointermove', onScenePointerMove);
-      window.addEventListener('pointerup', onScenePointerUp);
-      window.addEventListener('pointercancel', onScenePointerUp);
-
-      document.addEventListener('visibilitychange', () => {
-        isPageVisible = !document.hidden;
-      });
-
-      const touchPlane = new THREE.Mesh(
-        new THREE.PlaneGeometry(1000, 1000),
-        new THREE.MeshBasicMaterial({ visible: false })
-      );
-      scene.add(touchPlane);
+      lockscreen.addEventListener('pointerdown', startHold);
+      lockscreen.addEventListener('pointerup', cancelHold);
+      lockscreen.addEventListener('pointerleave', cancelHold);
+      lockscreen.addEventListener('pointercancel', cancelHold);
 
       function animate() {
         requestAnimationFrame(animate);
 
-        if (!isPageVisible) return;
-
         const now = performance.now();
-        const delta = Math.min((now - lastFrameTime) / 16.67, 3);
-        lastFrameTime = now;
+        const delta = Math.min((now - lastFrame) / 16.67, 2.5);
+        lastFrame = now;
         time += 0.01 * delta;
 
-        swipeWindX *= 0.94;
-        swipeWindY *= 0.94;
-
-        const idleDriftX = Math.sin(time * 0.06) * 4.0;
-        const idleDriftY = Math.cos(time * 0.05) * 2.5;
-        const targetX = gyroTargetX + pointerCamTargetX * 0.55 + idleDriftX;
-        const targetY = gyroTargetY + pointerCamTargetY * 0.55 + idleDriftY;
-
-        camera.position.x += (targetX - camera.position.x) * (isUnlocked ? 0.045 : 0.02) * delta;
-        camera.position.y += (targetY - camera.position.y) * (isUnlocked ? 0.045 : 0.02) * delta;
-
-        if (isUnlocked) {
-          cameraForwardProgress = Math.min(cameraForwardProgress + 0.00075 * delta, 1);
+        if (unlocked) {
+          cinematicDepth = Math.min(cinematicDepth + 0.0014 * delta, 1);
         } else {
-          cameraForwardProgress = Math.max(cameraForwardProgress - 0.002 * delta, 0);
+          cinematicDepth = Math.max(cinematicDepth - 0.003 * delta, 0);
         }
 
-        const cinematicZ = 150 - (cameraForwardProgress * 18);
-        camera.position.z = cinematicZ + Math.sin(time * 0.18) * 4 + Math.sin(time * 0.07) * 2;
+        camera.position.z = 170 - (cinematicDepth * 22) + Math.sin(time * 0.08) * 1.8;
+        camera.position.x = Math.sin(time * 0.035) * 3.2;
+        camera.position.y = Math.cos(time * 0.03) * 2.4;
         camera.lookAt(scene.position);
 
-        bloomGroup.rotation.y = Math.sin(time * 0.05) * 0.05 + gyroTargetX * 0.0014;
-        bloomGroup.rotation.x = Math.sin(time * 0.04) * 0.02 + gyroTargetY * 0.0009;
-
-        starField.rotation.y += 0.00035;
-        starField.rotation.x += 0.00012;
-        glowField.rotation.y -= 0.00008;
-        mistField.rotation.y += 0.00006;
-        mistField.rotation.x += 0.00003;
-        dustField.rotation.y += 0.00018;
-        moonSprite.scale.setScalar(1 + Math.sin(time * 0.6) * 0.03);
-
-        crimsonGlow.intensity = 3 + Math.sin(time * 2) * 0.8;
-        halo.intensity = 0.9 + Math.cos(time * 1.7) * 0.22;
-        moonLight.intensity = 1.05 + Math.sin(time * 0.5) * 0.05;
-
-        scene.fog.density = 0.0028 + Math.sin(time * 0.15) * 0.00014;
+        starField.rotation.y += 0.00028;
+        mistField.rotation.y += 0.00008;
+        bloomGroup.rotation.y = Math.sin(time * 0.08) * 0.05;
+        bloomGroup.rotation.x = Math.cos(time * 0.06) * 0.03;
 
         const mistAttr = mistGeometry.attributes.position;
         for (let i = 0; i < mistCount; i++) {
           const ix = i * 3;
-          mistPositions[ix] += mistSpeedX[i] + swipeWindX * 0.05;
-          mistPositions[ix + 1] += mistSpeedY[i] + swipeWindY * 0.04;
-          mistPositions[ix + 2] += Math.sin(time * 0.2 + i) * 0.01;
-
+          mistPositions[ix] += mistSpeedX[i];
+          mistPositions[ix + 1] += mistSpeedY[i];
           if (mistPositions[ix] > 280) mistPositions[ix] = -280;
           if (mistPositions[ix] < -280) mistPositions[ix] = 280;
           if (mistPositions[ix + 1] > 180) mistPositions[ix + 1] = -180;
@@ -1128,56 +505,14 @@
         }
         mistAttr.needsUpdate = true;
 
-        for (let i = sceneRipples.length - 1; i >= 0; i--) {
-          const ripple = sceneRipples[i];
-          ripple.radius += 3.0 + ripple.strength * 0.7;
-
-          floatingObjects.forEach(obj => {
-            const dx = obj.position.x - ripple.x;
-            const dy = obj.position.y - ripple.y;
-            const dist = Math.sqrt(dx * dx + dy * dy) || 0.0001;
-            const band = Math.abs(dist - ripple.radius);
-
-            if (band < 28) {
-              const push = (1 - band / 28) * ripple.strength * 0.85;
-              obj.userData.velocityX += (dx / dist) * push;
-              obj.userData.velocityY += (dy / dist) * push;
-            }
-          });
-
-          if (ripple.radius > ripple.maxRadius) {
-            sceneRipples.splice(i, 1);
-          }
-        }
-
-        floatingObjects.forEach(obj => {
-          const windX = Math.sin(time + obj.position.y * 0.02) * 0.2 + swipeWindX * 0.8;
-          const windY = Math.cos(time + obj.position.x * 0.02) * 0.1 + swipeWindY * 0.8;
-
-          if (activePointer && attractMode) {
-            const dx = currentWorldPoint.x - obj.position.x;
-            const dy = currentWorldPoint.y - obj.position.y;
-            const distance = Math.sqrt(dx * dx + dy * dy) || 0.0001;
-
-            if (distance < 160) {
-              const pull = (1 - distance / 160) * 0.45;
-              obj.userData.velocityX += (dx / distance) * pull;
-              obj.userData.velocityY += (dy / distance) * pull;
-            }
-          }
-
-          obj.position.x += obj.userData.speedX + obj.userData.velocityX + windX;
-          obj.position.y += obj.userData.speedY + obj.userData.velocityY + windY;
-
-          obj.userData.velocityX *= 0.92;
-          obj.userData.velocityY *= 0.92;
-
-          obj.rotation.x += obj.userData.rotSpeedX;
-          obj.rotation.y += obj.userData.rotSpeedY;
-
-          if (obj.position.y > 250) {
-            obj.position.y = -250;
-            obj.position.x = (Math.random() - 0.5) * 400;
+        lilies.forEach((flower) => {
+          flower.position.x += flower.userData.speedX;
+          flower.position.y += flower.userData.speedY;
+          flower.rotation.x += flower.userData.rotX;
+          flower.rotation.y += flower.userData.rotY;
+          if (flower.position.y > 230) {
+            flower.position.y = -220;
+            flower.position.x = (Math.random() - 0.5) * 360;
           }
         });
 
@@ -1191,8 +526,6 @@
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
       });
-
-      resetWhisperTimer();
     })();
   </script>
 </body>
