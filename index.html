@@ -37,12 +37,14 @@
       position: absolute;
       inset: 0;
       z-index: 1;
+      opacity: 0;
       filter: blur(22px) brightness(0.28);
-      transition: filter 2.2s ease-in-out;
+      transition: filter 2.2s ease-in-out, opacity 1.9s ease;
       pointer-events: none;
     }
 
     #webgl-container.unlocked {
+      opacity: 1;
       filter: blur(0px) brightness(1);
       pointer-events: auto;
     }
@@ -216,6 +218,28 @@
       transform: translateX(-50%) translateY(0);
     }
 
+    #whisper.glow-pop {
+      animation: whisperGlow 1.9s ease-out;
+    }
+
+    @keyframes whisperGlow {
+      0% {
+        text-shadow:
+          0 0 0 rgba(255, 140, 165, 0.15),
+          0 0 0 rgba(255, 160, 190, 0.1);
+      }
+      40% {
+        text-shadow:
+          0 0 26px rgba(255, 150, 180, 0.78),
+          0 0 54px rgba(255, 180, 210, 0.52);
+      }
+      100% {
+        text-shadow:
+          0 0 18px rgba(255, 120, 150, 0.35),
+          0 0 30px rgba(255, 160, 185, 0.14);
+      }
+    }
+
     #scene-ripple-layer {
       position: fixed;
       inset: 0;
@@ -332,6 +356,17 @@
       let currentWorldPoint = new THREE.Vector3(0, 0, 0);
 
       let idleWhisperTimer = null;
+      let whisperLineIndex = 0;
+      let whisperRevealTimer = null;
+      let cameraForwardProgress = 0;
+      let lastFrameTime = performance.now();
+      let isPageVisible = true;
+
+      const whisperLines = [
+        "I was waiting for you.",
+        "Every star leaned closer for this moment.",
+        "Stay here, and let the night bloom with us."
+      ];
 
       window.oncontextmenu = function (event) {
         event.preventDefault();
@@ -342,14 +377,27 @@
       function resetWhisperTimer() {
         if (!isUnlocked) return;
         whisper.classList.remove('show');
+        whisper.classList.remove('glow-pop');
         if (idleWhisperTimer) clearTimeout(idleWhisperTimer);
+        if (whisperRevealTimer) clearTimeout(whisperRevealTimer);
+
         idleWhisperTimer = setTimeout(() => {
-          if (isUnlocked) whisper.classList.add('show');
-        }, 9000);
+          if (!isUnlocked) return;
+          whisper.textContent = whisperLines[whisperLineIndex % whisperLines.length];
+          whisperLineIndex += 1;
+          whisperRevealTimer = setTimeout(() => {
+            if (!isUnlocked) return;
+            whisper.classList.add('show');
+            whisper.classList.remove('glow-pop');
+            void whisper.offsetWidth;
+            whisper.classList.add('glow-pop');
+          }, 650);
+        }, 8400);
       }
 
       function hideWhisperAndReset() {
         whisper.classList.remove('show');
+        whisper.classList.remove('glow-pop');
         resetWhisperTimer();
       }
 
@@ -631,15 +679,16 @@
       const bloomGroup = new THREE.Group();
       scene.add(bloomGroup);
 
-      const isLowEnd = (navigator.hardwareConcurrency || 4) <= 4;
+      const isMobile = window.matchMedia('(max-width: 900px), (pointer: coarse)').matches;
+      const isLowEnd = isMobile || (navigator.hardwareConcurrency || 4) <= 4;
 
       const renderer = new THREE.WebGLRenderer({
-        antialias: true,
+        antialias: !isLowEnd,
         alpha: false,
         powerPreference: "high-performance"
       });
       renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(isLowEnd ? 1 : Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(isLowEnd ? 1 : Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
       renderer.outputEncoding = THREE.sRGBEncoding;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.15;
@@ -693,7 +742,7 @@
       scene.add(moonSprite);
 
       const starGeometry = new THREE.BufferGeometry();
-      const starCount = isLowEnd ? 350 : 900;
+      const starCount = isLowEnd ? (isMobile ? 260 : 350) : 900;
       const starPositions = new Float32Array(starCount * 3);
 
       for (let i = 0; i < starPositions.length; i++) {
@@ -713,7 +762,7 @@
       scene.add(starField);
 
       const glowGeometry = new THREE.BufferGeometry();
-      const glowCount = isLowEnd ? 20 : 40;
+      const glowCount = isLowEnd ? (isMobile ? 14 : 20) : 40;
       const glowPositions = new Float32Array(glowCount * 3);
       for (let i = 0; i < glowPositions.length; i++) {
         glowPositions[i] = (Math.random() - 0.5) * 500;
@@ -732,7 +781,7 @@
       scene.add(glowField);
 
       const mistGeometry = new THREE.BufferGeometry();
-      const mistCount = isLowEnd ? 80 : 160;
+      const mistCount = isLowEnd ? (isMobile ? 58 : 80) : 160;
       const mistPositions = new Float32Array(mistCount * 3);
       const mistSpeedX = new Float32Array(mistCount);
       const mistSpeedY = new Float32Array(mistCount);
@@ -759,7 +808,7 @@
       scene.add(mistField);
 
       const dustGeometry = new THREE.BufferGeometry();
-      const dustCount = isLowEnd ? 120 : 220;
+      const dustCount = isLowEnd ? (isMobile ? 84 : 120) : 220;
       const dustPositions = new Float32Array(dustCount * 3);
 
       for (let i = 0; i < dustPositions.length; i++) {
@@ -904,7 +953,7 @@
       }
 
       const floatingObjects = [];
-      const lilyCount = isLowEnd ? 6 : 8;
+      const lilyCount = isLowEnd ? (isMobile ? 5 : 6) : 8;
 
       for (let i = 0; i < lilyCount; i++) {
         const lily = createLily();
@@ -912,7 +961,7 @@
         floatingObjects.push(lily);
       }
 
-      const petalCount = isLowEnd ? 22 : 34;
+      const petalCount = isLowEnd ? (isMobile ? 16 : 22) : 34;
       for (let i = 0; i < petalCount; i++) {
         const petal = new THREE.Mesh(petalGeometry, makePetalMaterial());
         setupFloatingPhysics(petal);
@@ -1007,6 +1056,10 @@
       window.addEventListener('pointerup', onScenePointerUp);
       window.addEventListener('pointercancel', onScenePointerUp);
 
+      document.addEventListener('visibilitychange', () => {
+        isPageVisible = !document.hidden;
+      });
+
       const touchPlane = new THREE.Mesh(
         new THREE.PlaneGeometry(1000, 1000),
         new THREE.MeshBasicMaterial({ visible: false })
@@ -1016,7 +1069,12 @@
       function animate() {
         requestAnimationFrame(animate);
 
-        time += 0.01;
+        if (!isPageVisible) return;
+
+        const now = performance.now();
+        const delta = Math.min((now - lastFrameTime) / 16.67, 3);
+        lastFrameTime = now;
+        time += 0.01 * delta;
 
         swipeWindX *= 0.94;
         swipeWindY *= 0.94;
@@ -1026,9 +1084,17 @@
         const targetX = gyroTargetX + pointerCamTargetX * 0.55 + idleDriftX;
         const targetY = gyroTargetY + pointerCamTargetY * 0.55 + idleDriftY;
 
-        camera.position.x += (targetX - camera.position.x) * (isUnlocked ? 0.045 : 0.02);
-        camera.position.y += (targetY - camera.position.y) * (isUnlocked ? 0.045 : 0.02);
-        camera.position.z = 150 + Math.sin(time * 0.18) * 4 + Math.sin(time * 0.07) * 2;
+        camera.position.x += (targetX - camera.position.x) * (isUnlocked ? 0.045 : 0.02) * delta;
+        camera.position.y += (targetY - camera.position.y) * (isUnlocked ? 0.045 : 0.02) * delta;
+
+        if (isUnlocked) {
+          cameraForwardProgress = Math.min(cameraForwardProgress + 0.00075 * delta, 1);
+        } else {
+          cameraForwardProgress = Math.max(cameraForwardProgress - 0.002 * delta, 0);
+        }
+
+        const cinematicZ = 150 - (cameraForwardProgress * 18);
+        camera.position.z = cinematicZ + Math.sin(time * 0.18) * 4 + Math.sin(time * 0.07) * 2;
         camera.lookAt(scene.position);
 
         bloomGroup.rotation.y = Math.sin(time * 0.05) * 0.05 + gyroTargetX * 0.0014;
