@@ -370,6 +370,42 @@
       text-transform: uppercase;
       opacity: 0;
     }
+
+    #music-toggle {
+      position: fixed;
+      bottom: 22px;
+      right: 22px;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(2, 0, 0, 0.82);
+      border: 1px solid rgba(201, 168, 76, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 40;
+      opacity: 0;
+      pointer-events: none;
+      box-shadow: 0 0 14px rgba(0, 0, 0, 0.55);
+      -webkit-tap-highlight-color: transparent;
+      transition: border-color 0.3s ease, background 0.3s ease;
+      padding: 0;
+      outline: none;
+    }
+
+    #music-toggle.visible {
+      pointer-events: auto;
+    }
+
+    #music-toggle:hover {
+      border-color: rgba(201, 168, 76, 0.95);
+      background: rgba(20, 0, 0, 0.9);
+    }
+
+    #music-toggle.muted svg {
+      opacity: 0.28;
+    }
   </style>
 </head>
 <body>
@@ -415,6 +451,14 @@
   <div id="vignette"></div>
   <div id="grain"></div>
 
+  <button id="music-toggle" aria-label="Toggle ambient music">
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 5.5h2.5L9 2v11L4.5 9.5H2a.5.5 0 0 1-.5-.5V6a.5.5 0 0 1 .5-.5z" fill="rgba(201,168,76,0.88)"/>
+      <path d="M11 5a3.5 3.5 0 0 1 0 5" stroke="rgba(201,168,76,0.88)" stroke-width="1.2" stroke-linecap="round"/>
+      <path d="M12.8 3a6.2 6.2 0 0 1 0 9" stroke="rgba(201,168,76,0.42)" stroke-width="1.0" stroke-linecap="round"/>
+    </svg>
+  </button>
+
   <script>
     (function () {
       const container = document.getElementById('webgl-container');
@@ -436,6 +480,9 @@
       let audioCtx = null;
       let masterGain = null;
       let chimeTimer = null;
+      let ambientAudioCtx = null;
+      let ambientMasterGain = null;
+      let ambientMuted = false;
 
       let gyroTargetX = 0;
       let gyroTargetY = 0;
@@ -709,6 +756,94 @@
         scheduleChime();
       }
 
+      function initAudio() {
+        if (ambientAudioCtx) return;
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+
+        ambientAudioCtx = new AC();
+
+        // Master gain — starts silent, fades to 0.35 over 6 seconds
+        ambientMasterGain = ambientAudioCtx.createGain();
+        ambientMasterGain.gain.setValueAtTime(0, ambientAudioCtx.currentTime);
+        ambientMasterGain.gain.linearRampToValueAtTime(0.35, ambientAudioCtx.currentTime + 6);
+        ambientMasterGain.connect(ambientAudioCtx.destination);
+
+        // Convolver reverb with synthesized exponential-decay impulse response
+        const reverb = ambientAudioCtx.createConvolver();
+        const sr = ambientAudioCtx.sampleRate;
+        const irLen = Math.floor(sr * 3.8);
+        const irBuf = ambientAudioCtx.createBuffer(2, irLen, sr);
+        for (let ch = 0; ch < 2; ch++) {
+          const d = irBuf.getChannelData(ch);
+          for (let i = 0; i < irLen; i++) {
+            d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / irLen, 2.1);
+          }
+        }
+        reverb.buffer = irBuf;
+
+        const reverbGain = ambientAudioCtx.createGain();
+        reverbGain.gain.value = 0.54;
+        reverb.connect(reverbGain);
+        reverbGain.connect(ambientMasterGain);
+
+        const dryGain = ambientAudioCtx.createGain();
+        dryGain.gain.value = 0.46;
+        dryGain.connect(ambientMasterGain);
+
+        // Bass drone — D1 (~36.71 Hz)
+        const bassDrone = ambientAudioCtx.createOscillator();
+        bassDrone.type = 'sine';
+        bassDrone.frequency.value = 36.71;
+        const bassDroneGain = ambientAudioCtx.createGain();
+        bassDroneGain.gain.value = 0.62;
+        bassDrone.connect(bassDroneGain);
+        bassDroneGain.connect(dryGain);
+        bassDroneGain.connect(reverb);
+        bassDrone.start();
+
+        // Dm chord — D3 (146.83 Hz), F3 (174.61 Hz), A3 (220.00 Hz)
+        const chordDefs = [
+          { freq: 146.83, type: 'sine',     peak: 0.13 },
+          { freq: 174.61, type: 'triangle', peak: 0.09 },
+          { freq: 220.00, type: 'triangle', peak: 0.07 }
+        ];
+
+        const chordGains = chordDefs.map(({ freq, type, peak }) => {
+          const osc = ambientAudioCtx.createOscillator();
+          osc.type = type;
+          osc.frequency.value = freq;
+          const g = ambientAudioCtx.createGain();
+          g.gain.value = 0;
+          osc.connect(g);
+          g.connect(reverb);
+          g.connect(dryGain);
+          osc.start();
+          return { g, peak };
+        });
+
+        // Cycle the chord softly every ~50 seconds
+        function cycleChord() {
+          const now = ambientAudioCtx.currentTime;
+          chordGains.forEach(({ g, peak }) => {
+            g.gain.cancelScheduledValues(now);
+            g.gain.setValueAtTime(0, now);
+            g.gain.linearRampToValueAtTime(peak, now + 10);
+            g.gain.linearRampToValueAtTime(peak * 0.78, now + 28);
+            g.gain.linearRampToValueAtTime(peak, now + 40);
+            g.gain.linearRampToValueAtTime(0, now + 50);
+          });
+          setTimeout(cycleChord, 52000);
+        }
+
+        // Begin first chord cycle after 3-second delay
+        setTimeout(cycleChord, 3000);
+
+        if (ambientAudioCtx.state === 'suspended') {
+          ambientAudioCtx.resume().catch(() => {});
+        }
+      }
+
       function worldPointFromEvent(e) {
         const point = e.touches && e.touches.length ? e.touches[0] : e;
         if (!point) return null;
@@ -772,6 +907,7 @@
         const heroNameEl = document.getElementById('hero-name');
         const heroRule = document.getElementById('hero-rule');
         const heroDate = document.getElementById('hero-date');
+        const musicToggle = document.getElementById('music-toggle');
 
         // Wrap each character of "Miss Rider" in a span for letter-by-letter animation
         const nameText = heroNameEl.textContent;
@@ -861,6 +997,7 @@
           if (audioCtx && audioCtx.state === 'suspended') {
             audioCtx.resume().catch(() => {});
           }
+          initAudio();
         });
 
         portalTl.to(whiteFlash, {
@@ -904,6 +1041,14 @@
           ease: "power3.out",
           stagger: 0.055
         }, "<-0.3");
+
+        // Music toggle fades in after hero settles
+        portalTl.to(musicToggle, {
+          opacity: 1,
+          duration: 0.7,
+          ease: "power1.out"
+        }, ">0.8");
+        portalTl.call(() => { musicToggle.classList.add('visible'); });
 
         // Hero stays visible for a moment then fades
         portalTl.to(heroOverlay, {
@@ -1469,6 +1614,21 @@
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      // Music toggle — fades ambient volume 0.35 ↔ 0 over 1.5 seconds
+      document.getElementById('music-toggle').addEventListener('click', () => {
+        if (!ambientAudioCtx || !ambientMasterGain) return;
+        if (ambientAudioCtx.state === 'suspended') {
+          ambientAudioCtx.resume().catch(() => {});
+        }
+        ambientMuted = !ambientMuted;
+        const target = ambientMuted ? 0 : 0.35;
+        const now = ambientAudioCtx.currentTime;
+        ambientMasterGain.gain.cancelScheduledValues(now);
+        ambientMasterGain.gain.setValueAtTime(ambientMasterGain.gain.value, now);
+        ambientMasterGain.gain.linearRampToValueAtTime(target, now + 1.5);
+        document.getElementById('music-toggle').classList.toggle('muted', ambientMuted);
       });
 
       resetWhisperTimer();
