@@ -38,7 +38,7 @@
       inset: 0;
       z-index: 1;
       filter: blur(22px) brightness(0.28);
-      transition: filter 2.2s ease-in-out;
+      transition: filter 2.6s ease-in-out;
       pointer-events: none;
     }
 
@@ -65,7 +65,7 @@
     .lock-label {
       font-family: "Cinzel", serif;
       font-size: clamp(10px, 2.5vw, 13px);
-      letter-spacing: 0.6em;
+      letter-spacing: 0.52em;
       color: var(--gold);
       text-transform: uppercase;
       margin: 0 0 12px 0;
@@ -78,13 +78,13 @@
       color: var(--moon);
       margin: 0 0 40px 0;
       opacity: 0.66;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
     }
 
     .lock-clock {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
       margin-bottom: 50px;
       flex-wrap: wrap;
       justify-content: center;
@@ -109,7 +109,7 @@
     .lock-unit-label {
       font-family: "Cinzel", serif;
       font-size: 9px;
-      letter-spacing: 0.5em;
+      letter-spacing: 0.42em;
       color: rgba(201,168,76,0.5);
       text-transform: uppercase;
     }
@@ -120,7 +120,7 @@
       color: rgba(196,30,58,0.5);
       line-height: 1;
       margin-bottom: 18px;
-      animation: blink 1s step-end infinite;
+      animation: blink 1.2s step-end infinite;
     }
 
     @keyframes blink {
@@ -131,10 +131,10 @@
     .lock-hint {
       font-family: "Cinzel", serif;
       font-size: 10px;
-      letter-spacing: 0.4em;
+      letter-spacing: 0.34em;
       color: rgba(201,168,76,0.42);
       text-transform: uppercase;
-      animation: hintPulse 3s ease-in-out infinite;
+      animation: hintPulse 3.6s ease-in-out infinite;
     }
 
     @keyframes hintPulse {
@@ -151,7 +151,7 @@
       justify-content: center;
       pointer-events: none;
       opacity: 0;
-      transition: opacity 0.25s ease;
+      transition: opacity 0.32s ease;
     }
 
     .progress-track {
@@ -181,11 +181,11 @@
       color: rgba(212, 192, 168, 0.35);
       font-family: "Cinzel", serif;
       font-size: 9px;
-      letter-spacing: 0.35em;
+      letter-spacing: 0.3em;
       text-transform: uppercase;
       pointer-events: none;
       opacity: 0;
-      transition: opacity 1s ease;
+      transition: opacity 1.2s ease;
     }
 
     #webgl-container.unlocked ~ #fx-hint {
@@ -204,9 +204,9 @@
       font-family: "Cormorant Garamond", serif;
       font-style: italic;
       font-size: clamp(18px, 3.5vw, 30px);
-      letter-spacing: 0.04em;
+      letter-spacing: 0.05em;
       text-shadow: 0 0 18px rgba(255, 120, 150, 0.35);
-      transition: opacity 1.2s ease, transform 1.2s ease;
+      transition: opacity 1.45s ease, transform 1.45s ease;
       max-width: min(78vw, 520px);
       text-align: center;
     }
@@ -233,7 +233,7 @@
       color: rgba(255, 234, 224, 0.9);
       font-family: "Cinzel", serif;
       font-size: clamp(17px, 3.8vw, 34px);
-      letter-spacing: 0.14em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       text-shadow:
         0 0 18px rgba(255, 134, 158, 0.35),
@@ -330,7 +330,7 @@
     .hero-label {
       font-family: "Cinzel", serif;
       font-size: clamp(9px, 2vw, 12px);
-      letter-spacing: 0.55em;
+      letter-spacing: 0.48em;
       color: var(--gold);
       text-transform: uppercase;
       opacity: 0.78;
@@ -342,7 +342,7 @@
       font-style: italic;
       font-size: clamp(42px, 10vw, 88px);
       color: rgba(255, 240, 228, 0.95);
-      letter-spacing: 0.06em;
+      letter-spacing: 0.07em;
       line-height: 1;
       margin: 0 0 18px 0;
       text-shadow: 0 0 30px rgba(255, 180, 160, 0.22);
@@ -365,7 +365,7 @@
     .hero-date {
       font-family: "Cinzel", serif;
       font-size: clamp(8px, 1.6vw, 11px);
-      letter-spacing: 0.45em;
+      letter-spacing: 0.38em;
       color: rgba(201, 168, 76, 0.52);
       text-transform: uppercase;
       opacity: 0;
@@ -519,7 +519,7 @@
               vol = Math.min(vol + 0.005, 0.45);
               bgMusic.volume = vol;
               if (vol >= 0.45) clearInterval(fade);
-            }, 60);
+            }, 50);
           }).catch(err => {
             console.log('Audio blocked:', err);
             // retry on next touch
@@ -586,7 +586,7 @@
         if (idleWhisperTimer) clearTimeout(idleWhisperTimer);
         idleWhisperTimer = setTimeout(() => {
           if (isUnlocked) whisper.classList.add('show');
-        }, 9000);
+        }, 8200);
       }
 
       function hideWhisperAndReset() {
@@ -609,18 +609,18 @@
           onComplete: () => {
             gsap.to(cinematicOverlay, {
               opacity: 0,
-              duration: 1.0,
+              duration: 1.15,
               ease: "power1.out"
             });
           }
         });
 
-        timeline.to(cinematicOverlay, { opacity: 1, duration: 0.8 });
+        timeline.to(cinematicOverlay, { opacity: 1, duration: 0.95 });
 
         const addCinematicBeat = (text, options = {}) => {
-          const fadeInDuration = options.fadeInDuration ?? 1.15;
-          const holdDuration = options.holdDuration ?? 0.75;
-          const fadeOutDuration = options.fadeOutDuration ?? 1.0;
+          const fadeInDuration = options.fadeInDuration ?? 1.25;
+          const holdDuration = options.holdDuration ?? 0.9;
+          const fadeOutDuration = options.fadeOutDuration ?? 1.1;
           const gapBefore = options.gapBefore ?? 0;
 
           if (gapBefore > 0) {
@@ -645,21 +645,21 @@
         };
 
         addCinematicBeat("I was waiting for you, Miss Rider.", {
-          fadeInDuration: 1.15,
-          holdDuration: 2.6,
-          fadeOutDuration: 1.0
+          fadeInDuration: 1.25,
+          holdDuration: 2.9,
+          fadeOutDuration: 1.1
         });
         addCinematicBeat("Happy Birthday.", {
-          gapBefore: 3.0,
-          fadeInDuration: 1.5,
-          holdDuration: 3.0,
-          fadeOutDuration: 1.0
+          gapBefore: 2.6,
+          fadeInDuration: 1.65,
+          holdDuration: 3.3,
+          fadeOutDuration: 1.1
         });
         addCinematicBeat("You make time feel… softer.", {
-          gapBefore: 1.0,
-          fadeInDuration: 1.15,
-          holdDuration: 4.0,
-          fadeOutDuration: 1.0
+          gapBefore: 0.9,
+          fadeInDuration: 1.25,
+          holdDuration: 4.3,
+          fadeOutDuration: 1.1
         });
 
         sequence.forEach((text, index) => {
@@ -669,13 +669,13 @@
           timeline.fromTo(
             cinematicLine,
             { opacity: 0, y: 24, scale: 0.97 },
-            { opacity: 1, y: 0, scale: 1, duration: 1.15 }
+            { opacity: 1, y: 0, scale: 1, duration: 1.25 }
           );
           timeline.to(cinematicLine, {
             opacity: 0,
             y: -12,
-            duration: 1.0,
-            delay: index === sequence.length - 1 ? 1.0 : 0.75,
+            duration: 1.1,
+            delay: index === sequence.length - 1 ? 1.2 : 0.9,
             ease: "power1.inOut"
           });
         });
@@ -819,7 +819,7 @@
             if (!audioCtx) return;
             playChime();
             scheduleChime();
-          }, 7000 + Math.random() * 7000);
+          }, 6200 + Math.random() * 6200);
         }
 
         scheduleChime();
@@ -835,7 +835,7 @@
         // Master gain — starts silent, fades to 0.35 over 6 seconds
         ambientMasterGain = ambientAudioCtx.createGain();
         ambientMasterGain.gain.setValueAtTime(0, ambientAudioCtx.currentTime);
-        ambientMasterGain.gain.linearRampToValueAtTime(0.35, ambientAudioCtx.currentTime + 6);
+        ambientMasterGain.gain.linearRampToValueAtTime(0.35, ambientAudioCtx.currentTime + 7.5);
         ambientMasterGain.connect(ambientAudioCtx.destination);
 
         // Convolver reverb with synthesized exponential-decay impulse response
@@ -897,16 +897,16 @@
           chordGains.forEach(({ g, peak }) => {
             g.gain.cancelScheduledValues(now);
             g.gain.setValueAtTime(0, now);
-            g.gain.linearRampToValueAtTime(peak, now + 10);
-            g.gain.linearRampToValueAtTime(peak * 0.78, now + 28);
-            g.gain.linearRampToValueAtTime(peak, now + 40);
-            g.gain.linearRampToValueAtTime(0, now + 50);
+            g.gain.linearRampToValueAtTime(peak, now + 12);
+            g.gain.linearRampToValueAtTime(peak * 0.78, now + 31);
+            g.gain.linearRampToValueAtTime(peak, now + 44);
+            g.gain.linearRampToValueAtTime(0, now + 56);
           });
-          setTimeout(cycleChord, 52000);
+          setTimeout(cycleChord, 58000);
         }
 
         // Begin first chord cycle after 3-second delay
-        setTimeout(cycleChord, 3000);
+        setTimeout(cycleChord, 2600);
 
         if (ambientAudioCtx.state === 'suspended') {
           ambientAudioCtx.resume().catch(() => {});
@@ -947,7 +947,7 @@
         gsap.to(ring, {
           scale: strong ? 12 : 9,
           opacity: 0,
-          duration: strong ? 1.6 : 1.3,
+          duration: strong ? 1.8 : 1.45,
           ease: 'power2.out',
           onComplete: () => ring.remove()
         });
@@ -990,7 +990,7 @@
         // --- Step 1: Fade out lockscreen (existing behaviour) ---
         gsap.to([lockscreen, holdRingContainer], {
           opacity: 0,
-          duration: 1.1,
+          duration: 1.25,
           ease: "power2.inOut",
           onComplete: () => {
             lockscreen.style.display = "none";
@@ -1006,14 +1006,14 @@
           opacity: 1,
           width: '18vmax',
           height: '18vmax',
-          duration: 0.55,
+          duration: 0.65,
           ease: "power3.out"
         });
 
         // Pulsing glow on the circle
         portalTl.to(portalCircle, {
           boxShadow: '0 0 100px 40px rgba(196,30,58,0.75), 0 0 200px 70px rgba(140,0,20,0.4), inset 0 0 60px rgba(255,40,60,0.25)',
-          duration: 0.4,
+          duration: 0.48,
           ease: "power2.inOut",
           yoyo: true,
           repeat: 1
@@ -1023,7 +1023,7 @@
         portalTl.to(portalCircle, {
           width: '260vmax',
           height: '260vmax',
-          duration: 0.7,
+          duration: 0.8,
           ease: "power3.in"
         });
 
@@ -1031,32 +1031,32 @@
         portalTl.to(document.body, {
           x: -6,
           y: 3,
-          duration: 0.04,
+          duration: 0.05,
           ease: "none"
         });
         portalTl.to(document.body, {
           x: 5,
           y: -4,
-          duration: 0.04,
+          duration: 0.05,
           ease: "none"
         });
         portalTl.to(document.body, {
           x: -3,
           y: 2,
-          duration: 0.04,
+          duration: 0.05,
           ease: "none"
         });
         portalTl.to(document.body, {
           x: 0,
           y: 0,
-          duration: 0.04,
+          duration: 0.05,
           ease: "none"
         });
 
         // --- Step 4: White flash 0→1→0 over ~400ms ---
         portalTl.to(whiteFlash, {
           opacity: 1,
-          duration: 0.18,
+          duration: 0.22,
           ease: "power2.in"
         });
 
@@ -1073,34 +1073,34 @@
 
         portalTl.to(whiteFlash, {
           opacity: 0,
-          duration: 0.22,
+          duration: 0.28,
           ease: "power2.out"
         });
 
         portalTl.to(portalCircle, {
           opacity: 0,
-          duration: 0.35,
+          duration: 0.42,
           ease: "power1.out"
         }, "<");
 
         // --- Step 5: Hero overlay fades in ---
         portalTl.to(heroOverlay, {
           opacity: 1,
-          duration: 0.6,
+          duration: 0.72,
           ease: "power2.out"
         });
 
         // Line grows outward
         portalTl.to(heroRule, {
           width: 'clamp(120px, 28vw, 320px)',
-          duration: 0.7,
+          duration: 0.82,
           ease: "power2.out"
         }, "<0.15");
 
         // Date fades in
         portalTl.to(heroDate, {
           opacity: 1,
-          duration: 0.55,
+          duration: 0.62,
           ease: "power1.out"
         }, "<0.2");
 
@@ -1108,17 +1108,17 @@
         portalTl.to(letters, {
           opacity: 1,
           y: 0,
-          duration: 0.38,
+          duration: 0.44,
           ease: "power3.out",
-          stagger: 0.055
+          stagger: 0.062
         }, "<-0.3");
 
         // Both music toggles fade in after hero settles
         portalTl.to([musicToggle, mp3Toggle], {
           opacity: 1,
-          duration: 0.7,
+          duration: 0.8,
           ease: "power1.out"
-        }, ">0.8");
+        }, ">0.9");
         portalTl.call(() => {
           musicToggle.classList.add('visible');
           mp3Toggle.classList.add('visible');
@@ -1127,9 +1127,9 @@
         // Hero stays visible for a moment then fades
         portalTl.to(heroOverlay, {
           opacity: 0,
-          duration: 1.2,
+          duration: 1.35,
           ease: "power2.inOut",
-          delay: 3.2,
+          delay: 3.4,
           onComplete: () => {
             heroOverlay.style.display = "none";
             playCinematicTextSequence();
@@ -1152,7 +1152,7 @@
 
         unlockTween = gsap.to(progressCircle, {
           strokeDashoffset: 0,
-          duration: 1.5,
+          duration: 1.7,
           ease: "none",
           onComplete: unlockGarden
         });
@@ -1167,7 +1167,7 @@
 
         gsap.to(progressCircle, {
           strokeDashoffset: 283,
-          duration: 0.3,
+          duration: 0.36,
           ease: "power2.out"
         });
 
