@@ -287,6 +287,89 @@
       background-size: 3px 3px, 3px 3px;
       mix-blend-mode: soft-light;
     }
+
+    #portal-circle {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      width: 0px;
+      height: 0px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 5200;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(circle, rgba(100,0,0,0.92) 0%, rgba(60,0,0,0.7) 50%, rgba(0,0,0,0) 100%);
+      box-shadow:
+        0 0 60px 20px rgba(196,30,58,0.55),
+        0 0 120px 40px rgba(140,0,20,0.3),
+        inset 0 0 40px rgba(255,40,60,0.18);
+    }
+
+    #white-flash {
+      position: fixed;
+      inset: 0;
+      z-index: 5300;
+      pointer-events: none;
+      background: #fff;
+      opacity: 0;
+    }
+
+    #hero-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .hero-label {
+      font-family: "Cinzel", serif;
+      font-size: clamp(9px, 2vw, 12px);
+      letter-spacing: 0.55em;
+      color: var(--gold);
+      text-transform: uppercase;
+      opacity: 0.78;
+      margin: 0 0 18px 0;
+    }
+
+    .hero-name {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-size: clamp(42px, 10vw, 88px);
+      color: rgba(255, 240, 228, 0.95);
+      letter-spacing: 0.06em;
+      line-height: 1;
+      margin: 0 0 18px 0;
+      text-shadow: 0 0 30px rgba(255, 180, 160, 0.22);
+    }
+
+    .hero-name .letter {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(18px);
+    }
+
+    .hero-rule {
+      width: 0px;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(196,30,58,0.9), transparent);
+      box-shadow: 0 0 10px rgba(196,30,58,0.55);
+      margin: 0 0 20px 0;
+    }
+
+    .hero-date {
+      font-family: "Cinzel", serif;
+      font-size: clamp(8px, 1.6vw, 11px);
+      letter-spacing: 0.45em;
+      color: rgba(201, 168, 76, 0.52);
+      text-transform: uppercase;
+      opacity: 0;
+    }
   </style>
 </head>
 <body>
@@ -319,6 +402,16 @@
   </div>
   <div id="whisper">I was waiting for you.</div>
   <div id="fx-hint">move to stir the petals</div>
+  <div id="portal-circle"></div>
+  <div id="white-flash"></div>
+
+  <div id="hero-overlay">
+    <p class="hero-label">A Birthday Offering</p>
+    <p class="hero-name" id="hero-name">Miss Rider</p>
+    <div class="hero-rule" id="hero-rule"></div>
+    <p class="hero-date" id="hero-date">Since &middot; 26 August 2025</p>
+  </div>
+
   <div id="vignette"></div>
   <div id="grain"></div>
 
@@ -673,6 +766,22 @@
         if (isUnlocked) return;
         isUnlocked = true;
 
+        const portalCircle = document.getElementById('portal-circle');
+        const whiteFlash = document.getElementById('white-flash');
+        const heroOverlay = document.getElementById('hero-overlay');
+        const heroNameEl = document.getElementById('hero-name');
+        const heroRule = document.getElementById('hero-rule');
+        const heroDate = document.getElementById('hero-date');
+
+        // Wrap each character of "Miss Rider" in a span for letter-by-letter animation
+        const nameText = heroNameEl.textContent;
+        heroNameEl.innerHTML = nameText.split('').map(ch =>
+          ch === ' ' ? '<span class="letter" style="display:inline-block;width:0.28em;">&nbsp;</span>'
+                     : `<span class="letter">${ch}</span>`
+        ).join('');
+        const letters = heroNameEl.querySelectorAll('.letter');
+
+        // --- Step 1: Fade out lockscreen (existing behaviour) ---
         gsap.to([lockscreen, holdRingContainer], {
           opacity: 0,
           duration: 1.1,
@@ -683,16 +792,132 @@
           }
         });
 
-        container.classList.add("unlocked");
-        playCinematicTextSequence();
-        hideWhisperAndReset();
+        // --- Step 2: Portal circle expands from centre ---
+        const portalTl = gsap.timeline();
 
-        startSoundscape();
-        if (audioCtx && audioCtx.state === 'suspended') {
-          audioCtx.resume().catch(() => {});
-        }
+        portalTl.set(portalCircle, { width: 0, height: 0, opacity: 0 });
+        portalTl.to(portalCircle, {
+          opacity: 1,
+          width: '18vmax',
+          height: '18vmax',
+          duration: 0.55,
+          ease: "power3.out"
+        });
 
-        resetWhisperTimer();
+        // Pulsing glow on the circle
+        portalTl.to(portalCircle, {
+          boxShadow: '0 0 100px 40px rgba(196,30,58,0.75), 0 0 200px 70px rgba(140,0,20,0.4), inset 0 0 60px rgba(255,40,60,0.25)',
+          duration: 0.4,
+          ease: "power2.inOut",
+          yoyo: true,
+          repeat: 1
+        });
+
+        // Expand to fill screen
+        portalTl.to(portalCircle, {
+          width: '260vmax',
+          height: '260vmax',
+          duration: 0.7,
+          ease: "power3.in"
+        });
+
+        // --- Step 3: Screen shake (brief, 3-4 frames worth) ---
+        portalTl.to(document.body, {
+          x: -6,
+          y: 3,
+          duration: 0.04,
+          ease: "none"
+        });
+        portalTl.to(document.body, {
+          x: 5,
+          y: -4,
+          duration: 0.04,
+          ease: "none"
+        });
+        portalTl.to(document.body, {
+          x: -3,
+          y: 2,
+          duration: 0.04,
+          ease: "none"
+        });
+        portalTl.to(document.body, {
+          x: 0,
+          y: 0,
+          duration: 0.04,
+          ease: "none"
+        });
+
+        // --- Step 4: White flash 0→1→0 over ~400ms ---
+        portalTl.to(whiteFlash, {
+          opacity: 1,
+          duration: 0.18,
+          ease: "power2.in"
+        });
+
+        portalTl.call(() => {
+          // Reveal the 3D canvas at peak of flash
+          container.classList.add("unlocked");
+          startSoundscape();
+          if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume().catch(() => {});
+          }
+        });
+
+        portalTl.to(whiteFlash, {
+          opacity: 0,
+          duration: 0.22,
+          ease: "power2.out"
+        });
+
+        portalTl.to(portalCircle, {
+          opacity: 0,
+          duration: 0.35,
+          ease: "power1.out"
+        }, "<");
+
+        // --- Step 5: Hero overlay fades in ---
+        portalTl.to(heroOverlay, {
+          opacity: 1,
+          duration: 0.6,
+          ease: "power2.out"
+        });
+
+        // Line grows outward
+        portalTl.to(heroRule, {
+          width: 'clamp(120px, 28vw, 320px)',
+          duration: 0.7,
+          ease: "power2.out"
+        }, "<0.15");
+
+        // Date fades in
+        portalTl.to(heroDate, {
+          opacity: 1,
+          duration: 0.55,
+          ease: "power1.out"
+        }, "<0.2");
+
+        // Letters animate in one by one
+        portalTl.to(letters, {
+          opacity: 1,
+          y: 0,
+          duration: 0.38,
+          ease: "power3.out",
+          stagger: 0.055
+        }, "<-0.3");
+
+        // Hero stays visible for a moment then fades
+        portalTl.to(heroOverlay, {
+          opacity: 0,
+          duration: 1.2,
+          ease: "power2.inOut",
+          delay: 3.2,
+          onComplete: () => {
+            heroOverlay.style.display = "none";
+            playCinematicTextSequence();
+            hideWhisperAndReset();
+            resetWhisperTimer();
+          }
+        });
       }
 
       function startHold(e) {
