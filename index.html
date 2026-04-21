@@ -216,6 +216,32 @@
       transform: translateX(-50%) translateY(0);
     }
 
+    #cinematic-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 26;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+    }
+
+    .cinematic-line {
+      max-width: min(80vw, 700px);
+      text-align: center;
+      color: rgba(255, 234, 224, 0.9);
+      font-family: "Cinzel", serif;
+      font-size: clamp(17px, 3.8vw, 34px);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      text-shadow:
+        0 0 18px rgba(255, 134, 158, 0.35),
+        0 0 36px rgba(255, 122, 122, 0.2);
+      transform: translateY(24px) scale(0.97);
+      opacity: 0;
+    }
+
     #scene-ripple-layer {
       position: fixed;
       inset: 0;
@@ -288,6 +314,9 @@
   </div>
 
   <div id="scene-ripple-layer"></div>
+  <div id="cinematic-overlay">
+    <div class="cinematic-line" id="cinematic-line"></div>
+  </div>
   <div id="whisper">I was waiting for you.</div>
   <div id="fx-hint">move to stir the petals</div>
   <div id="vignette"></div>
@@ -301,6 +330,8 @@
       const progressCircle = document.querySelector('.progress-circle');
       const rippleLayer = document.getElementById('scene-ripple-layer');
       const whisper = document.getElementById('whisper');
+      const cinematicOverlay = document.getElementById('cinematic-overlay');
+      const cinematicLine = document.getElementById('cinematic-line');
 
       const lkD = document.getElementById('lk-d');
       const lkH = document.getElementById('lk-h');
@@ -332,6 +363,7 @@
       let currentWorldPoint = new THREE.Vector3(0, 0, 0);
 
       let idleWhisperTimer = null;
+      let cinematicHasPlayed = false;
 
       window.oncontextmenu = function (event) {
         event.preventDefault();
@@ -351,6 +383,48 @@
       function hideWhisperAndReset() {
         whisper.classList.remove('show');
         resetWhisperTimer();
+      }
+
+      function playCinematicTextSequence() {
+        if (cinematicHasPlayed) return;
+        cinematicHasPlayed = true;
+
+        const sequence = [
+          "The garden remembers your name.",
+          "Tonight, every petal wakes for you.",
+          "Step gently. Let wonder answer."
+        ];
+
+        const timeline = gsap.timeline({
+          defaults: { ease: "power2.out" },
+          onComplete: () => {
+            gsap.to(cinematicOverlay, {
+              opacity: 0,
+              duration: 1.0,
+              ease: "power1.out"
+            });
+          }
+        });
+
+        timeline.to(cinematicOverlay, { opacity: 1, duration: 0.8 });
+
+        sequence.forEach((text, index) => {
+          timeline.call(() => {
+            cinematicLine.textContent = text;
+          });
+          timeline.fromTo(
+            cinematicLine,
+            { opacity: 0, y: 24, scale: 0.97 },
+            { opacity: 1, y: 0, scale: 1, duration: 1.15 }
+          );
+          timeline.to(cinematicLine, {
+            opacity: 0,
+            y: -12,
+            duration: 1.0,
+            delay: index === sequence.length - 1 ? 1.0 : 0.75,
+            ease: "power1.inOut"
+          });
+        });
       }
 
       function handleOrientation(event) {
@@ -565,6 +639,7 @@
         });
 
         container.classList.add("unlocked");
+        playCinematicTextSequence();
         hideWhisperAndReset();
 
         startSoundscape();
