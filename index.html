@@ -442,6 +442,95 @@
     #mp3-toggle.muted svg {
       opacity: 0.28;
     }
+
+    #poem-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: radial-gradient(ellipse at center,
+        rgba(8,0,0,0.92) 0%, rgba(0,0,0,0.82) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    #poem-overlay.active {
+      pointer-events: auto;
+    }
+
+    #petal-canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    #poem-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 40px 24px;
+      max-width: min(92vw, 580px);
+      overflow-y: auto;
+      max-height: 92vh;
+    }
+
+    .poem-label {
+      font-family: "Cinzel", serif;
+      font-size: 9px;
+      letter-spacing: 0.65em;
+      color: rgba(201,168,76,0.7);
+      text-transform: uppercase;
+      margin: 0 0 32px 0;
+      opacity: 0;
+    }
+
+    .poem-line {
+      font-family: "Cormorant Garamond", serif;
+      font-style: normal;
+      font-size: clamp(15px, 3vw, 20px);
+      color: #d4c0a8;
+      line-height: 2;
+      margin: 0;
+      opacity: 0;
+      transform: translateY(14px);
+    }
+
+    .poem-line.italic-line {
+      font-style: italic;
+      color: #e8c8c8;
+    }
+
+    .poem-line.glow-line {
+      color: #f0c0c8;
+      text-shadow:
+        0 0 18px rgba(196,30,58,0.6),
+        0 0 35px rgba(196,30,58,0.25);
+    }
+
+    .poem-ornament {
+      width: 0px;
+      height: 1px;
+      background: linear-gradient(to right,
+        transparent, rgba(196,30,58,0.5), transparent);
+      margin: 14px auto;
+      opacity: 0;
+    }
+
+    .poem-continue {
+      font-family: "Cinzel", serif;
+      font-size: 10px;
+      letter-spacing: 0.45em;
+      color: rgba(201,168,76,0.5);
+      text-transform: uppercase;
+      margin-top: 40px;
+      opacity: 0;
+      cursor: pointer;
+      animation: hintPulse 2.8s ease-in-out infinite;
+    }
   </style>
 </head>
 <body>
@@ -502,6 +591,31 @@
       <path d="M12.8 3a6.2 6.2 0 0 1 0 9" stroke="rgba(201,168,76,0.42)" stroke-width="1.0" stroke-linecap="round"/>
     </svg>
   </button>
+
+  <div id="poem-overlay">
+    <canvas id="petal-canvas"></canvas>
+    <div id="poem-content">
+      <p class="poem-label">The Poem</p>
+      <p class="poem-line">A deep red lily waits for the night,</p>
+      <p class="poem-line">Blooms not for the sun, but for the moon's soft light.</p>
+      <p class="poem-line">She hides her petals through the glaring day,</p>
+      <p class="poem-line glow-line">Too fierce, too real, for ordinary rays.</p>
+      <div class="poem-ornament"></div>
+      <p class="poem-line italic-line">Miss Rider, you ride through the roads of unsaid things,</p>
+      <p class="poem-line italic-line">Free as the wind beneath unfolded wings.</p>
+      <p class="poem-line">But even you, wild and bright and bold,</p>
+      <p class="poem-line">Have stories left half-spoken, half-untold.</p>
+      <div class="poem-ornament"></div>
+      <p class="poem-line">I wish for you a sky without conditions,</p>
+      <p class="poem-line">A path unbound by others' definitions.</p>
+      <p class="poem-line italic-line">May the moon one night bend low and say,</p>
+      <p class="poem-line glow-line italic-line">You are enough — exactly as you are today.</p>
+      <div class="poem-ornament"></div>
+      <p class="poem-line">May then you would bloom, Miss Rider, so bright,</p>
+      <p class="poem-line glow-line">No longer needing the cover of night.</p>
+      <p class="poem-continue" id="poem-continue">continue →</p>
+    </div>
+  </div>
 
   <script>
     (function () {
@@ -612,6 +726,7 @@
               duration: 1.15,
               ease: "power1.out"
             });
+            setTimeout(showPoem, 1800);
           }
         });
 
@@ -964,6 +1079,136 @@
           maxRadius: 220 + strength * 40
         });
         spawnRippleVisual(screenX, screenY, strength > 1.2);
+      }
+
+      function showPoem() {
+        const overlay = document.getElementById('poem-overlay');
+        const canvas = document.getElementById('petal-canvas');
+        const ctx = canvas.getContext('2d');
+        const label = overlay.querySelector('.poem-label');
+        const lines = overlay.querySelectorAll('.poem-line');
+        const ornaments = overlay.querySelectorAll('.poem-ornament');
+        const continueBtn = document.getElementById('poem-continue');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        overlay.classList.add('active');
+        gsap.to(overlay, { opacity: 1, duration: 1.2, ease: 'power2.out' });
+        gsap.to(label, { opacity: 1, duration: 1, delay: 0.4 });
+
+        // Build sequence — lines and ornaments interleaved
+        const allItems = Array.from(
+          overlay.querySelector('#poem-content').children
+        ).filter(el =>
+          el.classList.contains('poem-line') ||
+          el.classList.contains('poem-ornament')
+        );
+
+        let delay = 1.2;
+        allItems.forEach(item => {
+          if (item.classList.contains('poem-ornament')) {
+            gsap.to(item, {
+              width: 120,
+              opacity: 1,
+              duration: 0.8,
+              delay: delay,
+              ease: 'power2.out'
+            });
+            delay += 0.6;
+          } else {
+            const isGlow = item.classList.contains('glow-line');
+            gsap.to(item, {
+              opacity: 1,
+              y: 0,
+              duration: isGlow ? 1.1 : 0.85,
+              delay: delay,
+              ease: 'power2.out',
+              ...(isGlow ? { scale: 1, transformOrigin: 'center' } : {})
+            });
+            if (isGlow) {
+              gsap.fromTo(item,
+                { scale: 0.97 },
+                { scale: 1, duration: 1.1, delay: delay, ease: 'power2.out' }
+              );
+            }
+            delay += 0.7;
+          }
+        });
+
+        // Show continue button after all lines
+        gsap.to(continueBtn, {
+          opacity: 1,
+          duration: 1,
+          delay: delay + 2
+        });
+
+        // Continue button tap hides poem
+        continueBtn.addEventListener('click', () => {
+          gsap.to(overlay, {
+            opacity: 0,
+            duration: 1.2,
+            ease: 'power2.inOut',
+            onComplete: () => {
+              overlay.style.display = 'none';
+              stopPetals();
+            }
+          });
+        });
+
+        // Floating petals
+        const petals = [];
+        let petalTimer = null;
+        const colors = ['#8b0000', '#c41e3a', '#e06070'];
+
+        function spawnPetal() {
+          petals.push({
+            x: Math.random() * canvas.width,
+            y: -20,
+            vx: (Math.random() - 0.5) * 0.5,
+            vy: 0.4 + Math.random() * 0.5,
+            w: 6 + Math.random() * 10,
+            h: 14 + Math.random() * 18,
+            rot: Math.random() * Math.PI * 2,
+            rs: (Math.random() - 0.5) * 0.018,
+            alpha: 0.12 + Math.random() * 0.12,
+            wave: Math.random() * Math.PI * 2,
+            wspd: 0.01 + Math.random() * 0.01,
+            color: colors[Math.floor(Math.random() * colors.length)]
+          });
+        }
+
+        petalTimer = setInterval(() => {
+          if (petals.length < 12) spawnPetal();
+        }, 1100);
+
+        function stopPetals() {
+          clearInterval(petalTimer);
+        }
+
+        function drawPetals() {
+          if (!overlay.classList.contains('active')) return;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          for (let i = petals.length - 1; i >= 0; i--) {
+            const p = petals[i];
+            p.wave += p.wspd;
+            p.x += p.vx + Math.sin(p.wave) * 0.35;
+            p.y += p.vy;
+            p.rot += p.rs;
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rot);
+            ctx.globalAlpha = p.alpha;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, p.w / 2, p.h / 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+            if (p.y > canvas.height + 30) petals.splice(i, 1);
+          }
+          requestAnimationFrame(drawPetals);
+        }
+        drawPetals();
       }
 
       function unlockGarden() {
