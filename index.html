@@ -408,6 +408,51 @@
 
         timeline.to(cinematicOverlay, { opacity: 1, duration: 0.8 });
 
+        const addCinematicBeat = (text, options = {}) => {
+          const fadeInDuration = options.fadeInDuration ?? 1.15;
+          const holdDuration = options.holdDuration ?? 0.75;
+          const fadeOutDuration = options.fadeOutDuration ?? 1.0;
+          const gapBefore = options.gapBefore ?? 0;
+
+          if (gapBefore > 0) {
+            timeline.to({}, { duration: gapBefore });
+          }
+
+          timeline.call(() => {
+            cinematicLine.textContent = text;
+          });
+          timeline.fromTo(
+            cinematicLine,
+            { opacity: 0, y: 24, scale: 0.97 },
+            { opacity: 1, y: 0, scale: 1, duration: fadeInDuration, ease: "power2.out" }
+          );
+          timeline.to(cinematicLine, {
+            opacity: 0,
+            y: -12,
+            duration: fadeOutDuration,
+            delay: holdDuration,
+            ease: "power1.inOut"
+          });
+        };
+
+        addCinematicBeat("I was waiting for you, Miss Rider.", {
+          fadeInDuration: 1.15,
+          holdDuration: 2.6,
+          fadeOutDuration: 1.0
+        });
+        addCinematicBeat("Happy Birthday.", {
+          gapBefore: 3.0,
+          fadeInDuration: 1.5,
+          holdDuration: 3.0,
+          fadeOutDuration: 1.0
+        });
+        addCinematicBeat("You make time feel… softer.", {
+          gapBefore: 1.0,
+          fadeInDuration: 1.15,
+          holdDuration: 4.0,
+          fadeOutDuration: 1.0
+        });
+
         sequence.forEach((text, index) => {
           timeline.call(() => {
             cinematicLine.textContent = text;
