@@ -531,6 +531,142 @@
       cursor: pointer;
       animation: hintPulse 2.8s ease-in-out infinite;
     }
+
+    #gift-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: radial-gradient(ellipse at center,
+        rgba(8,0,0,0.94) 0%, rgba(0,0,0,0.85) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      overflow-y: auto;
+    }
+    #gift-overlay.active { pointer-events: auto; }
+    #gift-content {
+      text-align: center;
+      padding: 40px 24px;
+      max-width: min(92vw, 520px);
+      max-height: 92vh;
+      overflow-y: auto;
+    }
+    .gift-label {
+      font-family: "Cinzel", serif;
+      font-size: 9px;
+      letter-spacing: 0.65em;
+      color: rgba(201,168,76,0.7);
+      text-transform: uppercase;
+      margin: 0 0 40px 0;
+      opacity: 0;
+    }
+    #gift-scene { margin-bottom: 20px; }
+    #gift-box {
+      width: 200px;
+      height: 230px;
+      margin: 0 auto;
+      position: relative;
+      animation: giftFloat 5s ease-in-out infinite;
+      cursor: pointer;
+    }
+    @keyframes giftFloat {
+      0%,100% { transform: translateY(0) rotate(-2deg); }
+      50%      { transform: translateY(-12px) rotate(2deg); }
+    }
+    #gift-lid {
+      position: absolute;
+      top: 0; left: -8px;
+      width: 216px; height: 85px;
+      background: linear-gradient(155deg, #400000, #250000);
+      border: 1px solid rgba(196,30,58,0.35);
+      transform-origin: top center;
+      transition: transform 1s cubic-bezier(.34,1.3,.64,1),
+        opacity 0.8s;
+      z-index: 4;
+    }
+    #gift-body {
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 200px; height: 152px;
+      background: linear-gradient(155deg, #2c0000, #160000);
+      border: 1px solid rgba(196,30,58,0.3);
+    }
+    #gift-box.opening #gift-lid {
+      transform: rotateX(-130deg);
+      opacity: 0;
+    }
+    .ribbon-v {
+      position: absolute;
+      left: 50%; top: 0; bottom: 0;
+      width: 20px;
+      transform: translateX(-50%);
+      background: linear-gradient(to right,
+        #7a0000, var(--petal), #7a0000);
+      z-index: 2;
+    }
+    .ribbon-h {
+      position: absolute;
+      top: 38%; left: 0; right: 0;
+      height: 20px;
+      background: linear-gradient(to bottom,
+        #7a0000, var(--petal), #7a0000);
+      z-index: 2;
+    }
+    #gift-bow {
+      position: absolute;
+      top: 22%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 6;
+    }
+    #gift-shadow {
+      width: 220px; height: 18px;
+      position: absolute;
+      bottom: -24px; left: -10px;
+      background: radial-gradient(ellipse at center,
+        rgba(139,0,0,0.4) 0%, transparent 70%);
+      filter: blur(6px);
+    }
+    .gift-hint {
+      font-family: "Cinzel", serif;
+      font-size: 9px;
+      letter-spacing: 0.5em;
+      color: rgba(201,168,76,0.45);
+      text-transform: uppercase;
+      margin-top: 32px;
+      animation: hintPulse 2.4s ease-in-out infinite;
+    }
+    #gift-reveal { text-align: center; }
+    .gift-word {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-size: clamp(16px, 3vw, 21px);
+      color: #d4c0a8;
+      line-height: 2;
+      margin: 0;
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    .hw { color: #e06070; }
+    .gift-ornament {
+      width: 100px; height: 1px;
+      background: linear-gradient(to right,
+        transparent, rgba(196,30,58,0.45), transparent);
+      margin: 20px auto;
+      opacity: 0.55;
+    }
+    .gift-continue {
+      font-family: "Cinzel", serif;
+      font-size: 10px;
+      letter-spacing: 0.45em;
+      color: rgba(201,168,76,0.5);
+      text-transform: uppercase;
+      margin-top: 36px;
+      opacity: 0;
+      cursor: pointer;
+      animation: hintPulse 2.8s ease-in-out infinite;
+    }
   </style>
 </head>
 <body>
@@ -614,6 +750,75 @@
       <p class="poem-line">May then you would bloom, Miss Rider, so bright,</p>
       <p class="poem-line glow-line">No longer needing the cover of night.</p>
       <p class="poem-continue" id="poem-continue">continue →</p>
+    </div>
+  </div>
+
+  <div id="gift-overlay">
+    <div id="gift-content">
+      <p class="gift-label">Something For You</p>
+      <div id="gift-scene">
+        <div id="gift-box">
+          <div id="gift-lid">
+            <div class="ribbon-v"></div>
+          </div>
+          <div id="gift-body">
+            <div class="ribbon-v"></div>
+            <div class="ribbon-h"></div>
+          </div>
+          <div id="gift-bow">
+            <svg width="76" height="46" viewBox="0 0 76 46">
+              <ellipse cx="22" cy="23" rx="20" ry="12"
+                fill="#c41e3a" transform="rotate(-32,22,23)"
+                opacity=".9"/>
+              <ellipse cx="54" cy="23" rx="20" ry="12"
+                fill="#8b0000" transform="rotate(32,54,23)"
+                opacity=".9"/>
+              <circle cx="38" cy="23" r="8.5" fill="#e06070"/>
+              <circle cx="38" cy="23" r="5" fill="#c41e3a"/>
+              <line x1="38" y1="31" x2="38" y2="46"
+                stroke="#c41e3a" stroke-width="3"/>
+            </svg>
+          </div>
+          <div id="gift-shadow"></div>
+        </div>
+        <p class="gift-hint" id="gift-hint">tap to unwrap</p>
+      </div>
+      <div id="gift-reveal" style="display:none;">
+        <div class="gift-ornament"></div>
+        <p class="gift-word">She tells the world she's
+          <span class="hw">ruthless.</span><br>
+          The world believes her — she's convincing like that.<br>
+          But I've seen the way her kindness arrives<br>
+          <span class="hw">before she can stop it.</span>
+        </p>
+        <div class="gift-ornament"></div>
+        <p class="gift-word">She carries her weight alone —<br>
+          stubborn, quiet, certain.<br>
+          Like she made a promise to herself once<br>
+          and kept it <em>long past the reason.</em>
+        </p>
+        <div class="gift-ornament"></div>
+        <p class="gift-word">Her laugh —<br>
+          <span class="hw">the kind that makes a room
+          forget what it was doing.</span><br>
+          Unplanned. Unguarded. Entirely her.
+        </p>
+        <div class="gift-ornament"></div>
+        <p class="gift-word" style="color:#c9a84c;
+          font-size:clamp(18px,4vw,26px);">
+          Happy Birthday, Miss Rider.<br>
+          <span style="font-size:0.65em;
+            color:#d4c0a8;font-style:normal;">
+            Since 26th August 2025,<br>
+            the world has been a slightly
+            different place.
+          </span>
+        </p>
+        <div class="gift-ornament"></div>
+        <p class="gift-continue" id="gift-continue">
+          continue →
+        </p>
+      </div>
     </div>
   </div>
 
@@ -1152,6 +1357,7 @@
             onComplete: () => {
               overlay.style.display = 'none';
               stopPetals();
+              setTimeout(showGift, 600);
             }
           });
         });
@@ -1209,6 +1415,99 @@
           requestAnimationFrame(drawPetals);
         }
         drawPetals();
+      }
+
+      function showGift() {
+        const overlay = document.getElementById('gift-overlay');
+        const giftBox = document.getElementById('gift-box');
+        const giftHint = document.getElementById('gift-hint');
+        const giftReveal = document.getElementById('gift-reveal');
+        const giftLabel = overlay.querySelector('.gift-label');
+        const continueBtn = document.getElementById('gift-continue');
+        const whiteFlash = document.getElementById('white-flash');
+        let opened = false;
+
+        overlay.classList.add('active');
+        gsap.to(overlay, { opacity: 1, duration: 1.2,
+          ease: 'power2.out' });
+        gsap.to(giftLabel, { opacity: 1, duration: 1,
+          delay: 0.5 });
+
+        function openGift() {
+          if (opened) return;
+          opened = true;
+          giftHint.style.display = 'none';
+
+          // Shake
+          const shk = gsap.timeline();
+          shk
+            .to(giftBox, { x:-10, rotation:-3, duration:.06 })
+            .to(giftBox, { x: 10, rotation: 3,  duration:.06 })
+            .to(giftBox, { x: -7, rotation:-2,  duration:.06 })
+            .to(giftBox, { x:  7, rotation: 2,  duration:.06 })
+            .to(giftBox, { x:  0, rotation: 0,  duration:.08 })
+            .call(() => {
+              // Flash
+              gsap.to(whiteFlash, { opacity: 0.7,
+                duration: 0.07, onComplete: () =>
+                gsap.to(whiteFlash, { opacity: 0,
+                  duration: 0.5 })
+              });
+              // Open lid
+              giftBox.classList.add('opening');
+              // Shake page
+              gsap.to(document.body,
+                { x: 8, y:-3, duration:.05 });
+              gsap.to(document.body,
+                { x:-10, y: 4, duration:.05, delay:.05 });
+              gsap.to(document.body,
+                { x:  6, y:-2, duration:.05, delay:.10 });
+              gsap.to(document.body,
+                { x:  0, y: 0, duration:.08, delay:.15 });
+
+              setTimeout(() => {
+                gsap.to(giftBox.parentElement,
+                  { opacity: 0, y: -20, duration: 0.8,
+                    ease: 'power2.in',
+                    onComplete: () => {
+                      giftBox.parentElement.style
+                        .display = 'none';
+                      giftReveal.style.display = 'block';
+                      // Animate reveal words
+                      const words = giftReveal
+                        .querySelectorAll('.gift-word');
+                      words.forEach((w, i) => {
+                        gsap.to(w, {
+                          opacity: 1, y: 0,
+                          duration: 1,
+                          delay: i * 1.4,
+                          ease: 'power2.out'
+                        });
+                      });
+                      // Show continue
+                      gsap.to(continueBtn, {
+                        opacity: 1, duration: 1,
+                        delay: words.length * 1.4 + 1.5
+                      });
+                    }
+                  });
+              }, 900);
+            });
+        }
+
+        giftBox.addEventListener('click', openGift);
+        giftBox.addEventListener('touchend', e => {
+          e.preventDefault(); openGift();
+        });
+
+        continueBtn.addEventListener('click', () => {
+          gsap.to(overlay, { opacity: 0, duration: 1.2,
+            ease: 'power2.inOut',
+            onComplete: () => {
+              overlay.style.display = 'none';
+            }
+          });
+        });
       }
 
       function unlockGarden() {
