@@ -510,13 +510,24 @@
       bgMusic.volume = 0;
 
       function startMusic() {
-        bgMusic.play().catch(() => {});
-        let vol = 0;
-        const fade = setInterval(() => {
-          vol = Math.min(vol + 0.005, 0.45);
-          bgMusic.volume = vol;
-          if (vol >= 0.45) clearInterval(fade);
-        }, 60);
+        bgMusic.load();
+        const playPromise = bgMusic.play();
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            let vol = 0;
+            const fade = setInterval(() => {
+              vol = Math.min(vol + 0.005, 0.45);
+              bgMusic.volume = vol;
+              if (vol >= 0.45) clearInterval(fade);
+            }, 60);
+          }).catch(err => {
+            console.log('Audio blocked:', err);
+            // retry on next touch
+            document.addEventListener('touchstart', () => {
+              startMusic();
+            }, { once: true });
+          });
+        }
       }
 
       const container = document.getElementById('webgl-container');
