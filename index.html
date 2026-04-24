@@ -58,8 +58,14 @@
       text-align: center;
       cursor: pointer;
       background:
-        radial-gradient(circle at center, rgba(40,0,0,0.14), rgba(0,0,0,0.7)),
-        linear-gradient(to bottom, rgba(0,0,0,0.06), rgba(0,0,0,0.35));
+        radial-gradient(ellipse at 50% 42%,
+          rgba(60,0,8,0.22) 0%,
+          rgba(20,0,2,0.55) 45%,
+          rgba(0,0,0,0.82) 100%),
+        radial-gradient(ellipse at 30% 80%,
+          rgba(30,0,0,0.15) 0%, transparent 55%),
+        radial-gradient(ellipse at 70% 20%,
+          rgba(40,0,5,0.12) 0%, transparent 50%);
     }
 
     .lock-label {
@@ -74,11 +80,11 @@
 
     .lock-until {
       font-style: italic;
-      font-size: clamp(18px, 4vw, 24px);
+      font-size: clamp(15px, 3.5vw, 20px);
       color: var(--moon);
       margin: 0 0 40px 0;
-      opacity: 0.66;
-      letter-spacing: 0.06em;
+      opacity: 0.5;
+      letter-spacing: 0.08em;
     }
 
     .lock-clock {
@@ -99,7 +105,8 @@
 
     .lock-digits {
       font-family: "Cinzel", serif;
-      font-size: clamp(40px, 10vw, 75px);
+      font-size: clamp(44px, 11vw, 82px);
+      font-weight: 400;
       line-height: 1;
       color: var(--petal);
       text-shadow: 0 0 30px rgba(196,30,58,0.6);
@@ -130,8 +137,8 @@
 
     .lock-hint {
       font-family: "Cinzel", serif;
-      font-size: 10px;
-      letter-spacing: 0.34em;
+      font-size: 9px;
+      letter-spacing: 0.52em;
       color: rgba(201,168,76,0.42);
       text-transform: uppercase;
       animation: hintPulse 3.6s ease-in-out infinite;
@@ -340,12 +347,14 @@
     .hero-name {
       font-family: "Cormorant Garamond", serif;
       font-style: italic;
-      font-size: clamp(42px, 10vw, 88px);
+      font-size: clamp(58px, 14vw, 118px);
       color: rgba(255, 240, 228, 0.95);
-      letter-spacing: 0.07em;
+      letter-spacing: 0.09em;
       line-height: 1;
       margin: 0 0 18px 0;
-      text-shadow: 0 0 30px rgba(255, 180, 160, 0.22);
+      text-shadow:
+        0 0 60px rgba(255,180,160,0.35),
+        0 0 120px rgba(196,30,58,0.18);
     }
 
     .hero-name .letter {
@@ -357,16 +366,19 @@
     .hero-rule {
       width: 0px;
       height: 1px;
-      background: linear-gradient(to right, transparent, rgba(196,30,58,0.9), transparent);
-      box-shadow: 0 0 10px rgba(196,30,58,0.55);
-      margin: 0 0 20px 0;
+      background: linear-gradient(to right, transparent,
+        rgba(196,30,58,1), transparent);
+      box-shadow:
+        0 0 18px rgba(196,30,58,0.7),
+        0 0 40px rgba(196,30,58,0.25);
+      margin: 0 0 26px 0;
     }
 
     .hero-date {
       font-family: "Cinzel", serif;
-      font-size: clamp(8px, 1.6vw, 11px);
-      letter-spacing: 0.38em;
-      color: rgba(201, 168, 76, 0.52);
+      font-size: clamp(9px, 1.8vw, 12px);
+      letter-spacing: 0.5em;
+      color: rgba(201,168,76,0.48);
       text-transform: uppercase;
       opacity: 0;
     }
@@ -447,8 +459,10 @@
       position: fixed;
       inset: 0;
       z-index: 50;
-      background: radial-gradient(ellipse at center,
-        rgba(8,0,0,0.92) 0%, rgba(0,0,0,0.82) 100%);
+      background: radial-gradient(ellipse at 50% 35%,
+        rgba(14,2,2,0.95) 0%,
+        rgba(4,0,0,0.88) 55%,
+        rgba(0,0,0,0.92) 100%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -472,28 +486,28 @@
       position: relative;
       z-index: 2;
       text-align: center;
-      padding: 40px 24px;
-      max-width: min(92vw, 580px);
+      padding: 60px 28px;
+      max-width: min(92vw, 560px);
       overflow-y: auto;
       max-height: 92vh;
     }
 
     .poem-label {
       font-family: "Cinzel", serif;
-      font-size: 9px;
-      letter-spacing: 0.65em;
+      font-size: 8px;
+      letter-spacing: 0.7em;
       color: rgba(201,168,76,0.7);
       text-transform: uppercase;
-      margin: 0 0 32px 0;
+      margin: 0 0 44px 0;
       opacity: 0;
     }
 
     .poem-line {
       font-family: "Cormorant Garamond", serif;
       font-style: normal;
-      font-size: clamp(15px, 3vw, 20px);
-      color: #d4c0a8;
-      line-height: 2;
+      font-size: clamp(16px, 3.4vw, 22px);
+      color: rgba(212,192,168,0.88);
+      line-height: 2.4;
       margin: 0;
       opacity: 0;
       transform: translateY(14px);
@@ -501,10 +515,13 @@
 
     .poem-line.italic-line {
       font-style: italic;
-      color: #e8c8c8;
+      color: rgba(240,210,210,0.92);
+      letter-spacing: 0.03em;
     }
 
     .poem-line.glow-line {
+      font-size: clamp(17px,3.6vw,24px);
+      font-weight: 400;
       color: #f0c0c8;
       text-shadow:
         0 0 18px rgba(196,30,58,0.6),
@@ -516,17 +533,17 @@
       height: 1px;
       background: linear-gradient(to right,
         transparent, rgba(196,30,58,0.5), transparent);
-      margin: 14px auto;
+      margin: 22px auto;
       opacity: 0;
     }
 
     .poem-continue {
       font-family: "Cinzel", serif;
-      font-size: 10px;
-      letter-spacing: 0.45em;
-      color: rgba(201,168,76,0.5);
+      font-size: 9px;
+      letter-spacing: 0.6em;
+      color: rgba(201,168,76,0.38);
       text-transform: uppercase;
-      margin-top: 40px;
+      margin-top: 56px;
       opacity: 0;
       cursor: pointer;
       animation: hintPulse 2.8s ease-in-out infinite;
@@ -564,11 +581,11 @@
     .gift-hint{font-family:"Cinzel",serif;font-size:10px;letter-spacing:0.52em;color:rgba(201,168,76,0.42);text-transform:uppercase;margin-top:28px;animation:hintPulse 3.6s ease-in-out infinite;}
     .gb-ornament{width:120px;height:1px;background:linear-gradient(to right,transparent,rgba(196,30,58,0.6),transparent);box-shadow:0 0 8px rgba(196,30,58,0.4);margin:10px auto;}
     #gift-reveal{text-align:center;}
-    .gift-word{font-family:"Cormorant Garamond",serif;font-style:italic;font-size:clamp(17px,3.2vw,23px);line-height:2.05;color:var(--moon);opacity:0;transform:translateY(16px);border-left:1px solid rgba(196,30,58,0);padding-left:0;transition:border-color 1s ease,padding-left 0.8s ease;}
+    .gift-word{font-family:"Cormorant Garamond",serif;font-style:italic;font-size:clamp(18px,3.4vw,24px);line-height:2.2;color:rgba(220,200,180,0.9);opacity:0;transform:translateY(16px);border-left:1px solid rgba(196,30,58,0);padding-left:0;transition:border-color 1s ease,padding-left 0.8s ease;}
     .gift-word.lit{border-left:1px solid rgba(196,30,58,0.35);padding-left:12px;}
     .hw{color:#e06070;}
-    .gift-ornament{width:100px;height:1px;background:linear-gradient(to right,transparent,rgba(196,30,58,0.45),transparent);margin:20px auto;opacity:.55;}
-    .gift-continue{font-family:"Cinzel",serif;font-size:10px;letter-spacing:0.45em;color:rgba(201,168,76,0.5);text-transform:uppercase;margin-top:36px;opacity:0;cursor:pointer;animation:hintPulse 2.8s ease-in-out infinite;}
+    .gift-ornament{width:120px;height:1px;background:linear-gradient(to right,transparent,rgba(196,30,58,0.45),transparent);margin:28px auto;opacity:.55;}
+    .gift-continue{font-family:"Cinzel",serif;font-size:9px;letter-spacing:0.62em;color:rgba(201,168,76,0.4);text-transform:uppercase;margin-top:52px;opacity:0;cursor:pointer;animation:hintPulse 2.8s ease-in-out infinite;}
 
     /* UPGRADE: Portrait light sweep */
     @keyframes portraitSweep {
@@ -693,14 +710,14 @@
       text-transform:uppercase; margin:0 0 8px 0; opacity:0;
     }
     .cake-bday {
-      font-family:"Cinzel",serif; font-size:clamp(13px,3.5vw,20px);
-      letter-spacing:0.22em; color:var(--gold);
+      font-family:"Cinzel",serif; font-size:clamp(14px,3.8vw,22px);
+      letter-spacing:0.3em; color:var(--gold);
       text-shadow:0 0 28px rgba(201,168,76,0.4);
       margin:0 0 4px 0; opacity:0;
     }
     .cake-name {
       font-family:"Cormorant Garamond",serif; font-style:italic;
-      font-size:clamp(36px,9vw,64px); color:var(--petal);
+      font-size:clamp(42px,11vw,72px); letter-spacing:0.04em; color:var(--petal);
       text-shadow:0 0 45px rgba(196,30,58,0.55);
       margin:0 0 24px 0; opacity:0;
     }
@@ -905,16 +922,16 @@
       opacity:0.045; pointer-events:none;
     }
     .ending-ornament {
-      width:55px; height:1px; margin:0 auto 55px;
+      width:80px; height:1px; margin:0 auto 70px;
       background:linear-gradient(to right,
-        transparent,rgba(196,30,58,0.3),transparent);
+        transparent,rgba(196,30,58,0.45),transparent);
       opacity:0;
     }
     .ending-line1 {
       font-family:"Cormorant Garamond",serif; font-style:italic;
-      font-size:clamp(18px,4.5vw,28px);
-      color:rgba(212,192,168,0.75); line-height:1.9;
-      letter-spacing:0.04em; max-width:400px;
+      font-size:clamp(22px,5vw,34px);
+      color:rgba(220,200,185,0.82); line-height:2.2;
+      letter-spacing:0.06em; max-width:400px;
       opacity:0; transform:translateY(20px);
       filter:blur(10px);
       transition:opacity 2.6s ease, transform 2.6s ease, filter 2.6s ease;
@@ -931,9 +948,9 @@
     .ending-divider.vis { opacity:1; }
     .ending-line2 {
       font-family:"Cormorant Garamond",serif; font-style:italic;
-      font-size:clamp(14px,3.2vw,20px);
-      color:rgba(201,168,76,0.42); line-height:2;
-      letter-spacing:0.06em; max-width:300px;
+      font-size:clamp(16px,3.8vw,24px);
+      color:rgba(201,168,76,0.55); line-height:2;
+      letter-spacing:0.08em; max-width:300px;
       opacity:0; transform:translateY(20px);
       filter:blur(8px);
       transition:opacity 2.8s ease 1.5s, transform 2.8s ease 1.5s,
@@ -943,20 +960,66 @@
       opacity:1; transform:translateY(0); filter:blur(0);
     }
     .ending-sig {
-      font-family:"Cinzel",serif; font-size:9px;
-      letter-spacing:0.55em; color:rgba(201,168,76,0.22);
-      text-transform:uppercase; margin-top:55px;
+      font-family:"Cinzel",serif; font-size:10px;
+      letter-spacing:0.65em; color:rgba(201,168,76,0.3);
+      text-transform:uppercase; margin-top:70px;
       opacity:0; transition:opacity 2.5s ease 3.2s;
     }
     .ending-sig.vis { opacity:1; }
     .ending-garden-hint {
       position:absolute; bottom:28px; left:50%;
       transform:translateX(-50%);
-      font-family:"Cinzel",serif; font-size:8px;
-      letter-spacing:0.4em; color:rgba(201,168,76,0.2);
+      font-family:"Cinzel",serif; font-size:9px;
+      letter-spacing:0.55em; color:rgba(201,168,76,0.2);
       text-transform:uppercase; opacity:0; cursor:pointer;
       animation:hintPulse 3s ease-in-out infinite;
       transition:opacity 1s ease;
+    }
+
+
+    .poem-line.rising {
+      font-size: clamp(16px, 3.4vw, 22px);
+      color: rgba(220,205,188,0.9);
+      letter-spacing: 0.02em;
+    }
+
+    .poem-line.fierce {
+      font-size: clamp(17px, 3.5vw, 23px);
+      color: rgba(240,190,190,0.95);
+      text-shadow:
+        0 0 24px rgba(196,30,58,0.65),
+        0 0 48px rgba(196,30,58,0.28);
+      letter-spacing: 0.04em;
+    }
+
+    .poem-line.tender {
+      color: rgba(190,205,235,0.88);
+      letter-spacing: 0.035em;
+    }
+
+    .poem-line.golden {
+      font-size: clamp(17px, 3.6vw, 23px);
+      color: rgba(230,210,120,0.95);
+      text-shadow:
+        0 0 24px rgba(201,168,76,0.6),
+        0 0 48px rgba(201,168,76,0.22);
+      letter-spacing: 0.04em;
+    }
+
+    #hero-overlay::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 50%,
+        rgba(60,0,8,0.18) 0%,
+        transparent 65%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .lock-colon {
+      font-size: clamp(24px, 6vw, 48px) !important;
+      color: rgba(196,30,58,0.35) !important;
     }
 
   </style>
